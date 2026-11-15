@@ -146,7 +146,10 @@ Before full commercial launch, the following items from the Decision Register re
 4. **O-08 (Founder Portrait)**: Supply high-resolution monochrome founder portrait (current build features an accessible architectural placeholder).
 5. **O-09 (Founder Bio)**: Confirm factual dates, academic degrees, and professional certifications.
 6. **O-11 to O-14 (Case Studies)**: Obtain client permission sign-offs to display client names and interface captures for REALTYINTEL and DEEN DRIP.
-7. **O-16 (Contact SLA)**: Finalize client inquiry response time promise and provision business inbox.
+7. **O-16 (Contact Channels & Provider - Configured)**:
+   - Studio/Company Inbox: `haftechhq@gmail.com`
+   - Founder Personal Inbox: `ariyofaruq1@gmail.com`
+   - Transactional Email: Resend integration ready in `app/api/contact/route.ts` (awaiting `EMAIL_API_KEY` when configured).
 
 ---
 
@@ -175,3 +178,4 @@ To ensure 100% inbox delivery and protect the domain against spoofing:
 ## 9. License
 
 Proprietary. Copyright © 2026 HafTech Studio and Faruq Ariyo. All rights reserved.
+

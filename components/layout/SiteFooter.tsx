@@ -18,8 +18,15 @@ export function SiteFooter() {
             </li>
           </ul>
         </nav>
-        {/* OPEN: contact email, social links pending founder confirmation */}
-        <p className="label">© {new Date().getFullYear()} HafTech</p>
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-6 border-t border-line text-xs">
+          <p className="label">© {new Date().getFullYear()} HafTech · All rights reserved</p>
+          <a
+            href="mailto:haftechhq@gmail.com"
+            className="hover:text-[var(--accent)] font-mono text-[var(--text-2)]"
+          >
+            haftechhq@gmail.com
+          </a>
+        </div>
       </div>
     </footer>
   );

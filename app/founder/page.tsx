@@ -74,6 +74,12 @@ export default function FounderPage() {
               <span style={{ color: "var(--text)" }}>HafTech</span>
             </div>
             <div className="flex justify-between">
+              <span className="label text-[11px]">Direct Inbox</span>
+              <a href="mailto:ariyofaruq1@gmail.com" className="hover:underline font-mono" style={{ color: "var(--text)" }}>
+                ariyofaruq1@gmail.com
+              </a>
+            </div>
+            <div className="flex justify-between">
               <span className="label text-[11px]">Experience</span>
               <span style={{ color: "var(--text)" }}>4+ Years (Since 2022)</span>
             </div>
@@ -117,6 +123,13 @@ export default function FounderPage() {
 
           {/* Verified Profiles */}
           <div className="mt-8 pt-6 border-t border-line flex flex-wrap gap-4 items-center">
+            <a
+              href="mailto:ariyofaruq1@gmail.com"
+              className="btn btn-secondary text-xs inline-flex items-center gap-1.5"
+              style={{ minHeight: 40 }}
+            >
+              Email Founder ↗
+            </a>
             <a
               href="https://linkedin.com/in/fsdev-faruq"
               target="_blank"

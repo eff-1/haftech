@@ -57,6 +57,7 @@ export function getPersonJsonLd(baseUrl: string) {
     "@type": "Person",
     name: "Faruq Ariyo",
     jobTitle: "Founder & Full-Stack Software Engineer",
+    email: "ariyofaruq1@gmail.com",
     worksFor: {
       "@type": "Organization",
       name: "HafTech",
