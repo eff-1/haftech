@@ -1,0 +1,13 @@
+flowchart TD
+  A["Author drafts MDX or JSON entry"] --> B["Add assets to /public or /content/assets"]
+  B --> C["Fill project schema: status, ownership, contributions"]
+  C --> D{"Facts verified by owner?"}
+  D -- "No" --> E["Mark 'needs verification'; keep out of production"]
+  D -- "Yes" --> F["Pull request"]
+  E --> C
+  F --> G["CI: typecheck, lint, schema validation, link check"]
+  G --> H["Vercel preview deployment"]
+  H --> I{"Review: copy, contribution matrix, a11y"}
+  I -- "Changes" --> C
+  I -- "Approved" --> J["Merge to main"]
+  J --> K["Production deploy"]

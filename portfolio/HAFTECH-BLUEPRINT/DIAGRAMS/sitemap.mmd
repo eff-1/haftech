@@ -1,0 +1,29 @@
+flowchart TD
+  HOME["/ Studio homepage"]
+  WORK["/work Studio and client work"]
+  WORKS["/work/[slug] Case study"]
+  PROJ["/projects Owned products and experiments"]
+  PROJS["/projects/[slug] Project story"]
+  SERV["/services Capabilities"]
+  APP["/approach Methodology"]
+  FOUND["/founder Founder profile"]
+  JOUR["/journal Engineering notes"]
+  JOURS["/journal/[slug] Article"]
+  CONT["/contact Business enquiries"]
+  HOME --> WORK --> WORKS
+  HOME --> PROJ --> PROJS
+  HOME --> SERV
+  HOME --> APP
+  HOME --> FOUND
+  HOME --> JOUR --> JOURS
+  HOME --> CONT
+  SERV -. "related work" .-> WORK
+  APP -. "visualization" .-> SERV
+  WORKS -. "architecture explorer" .-> SERV
+  PROJS -. "built by" .-> FOUND
+  FOUND -. "selected work" .-> WORK
+  FOUND -. "owned products" .-> PROJ
+  JOURS -. "author" .-> FOUND
+  WORKS --> CONT
+  SERV --> CONT
+  FOUND --> CONT

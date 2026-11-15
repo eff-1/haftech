@@ -1,0 +1,17 @@
+flowchart TD
+  V["Visitor browser"] --> CDN["Vercel Edge / CDN"]
+  CDN --> NEXT["Next.js App Router"]
+  subgraph APP["Application"]
+    RSC["Server Components: pages, MDX, metadata"]
+    CC["Client Components: motion, diagrams, nav"]
+    API["Route Handler: /api/contact"]
+  end
+  NEXT --> RSC
+  NEXT --> CC
+  NEXT --> API
+  RSC --> CONTENT["Content layer: MDX + typed JSON"]
+  API --> BOT["Bot check (Turnstile)"]
+  API --> MAIL["Transactional email provider"]
+  MAIL --> INBOX["HafTech inbox"]
+  CC --> SVG["SVG / Canvas visualizations"]
+  NEXT --> ANA["Privacy-friendly analytics"]

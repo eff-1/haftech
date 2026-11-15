@@ -1,0 +1,535 @@
+{
+  "_readme": "All records are UNVERIFIED seed data. Never publish a record until verified=true. openFields lists what the founder must confirm. Extra fields beyond doc 07 schema (openFields, sourceNote, statusConflict, featuredCandidate) are seed-only: strip or ignore in production types.",
+  "projects": [
+    {
+      "slug": "axiora",
+      "title": "Axiora",
+      "summary": "AI-native business operating system that connects CRM, invoicing, HR, projects, inventory, support and automation in one environment, with AI assistance and human verification where appropriate.",
+      "category": "Business software",
+      "type": "project",
+      "ownership": "haftech",
+      "status": "in-development",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Product concept and vision",
+        "Architecture",
+        "Planning",
+        "Development"
+      ],
+      "technologies": [
+        "Neon PostgreSQL",
+        "Resend"
+      ],
+      "contributions": [
+        {
+          "area": "architecture",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Founder-stated: driving concept, vision, architecture, planning, development. Confirm."
+        },
+        {
+          "area": "product-design",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Product concept and positioning"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status",
+        "modules implemented",
+        "tech stack",
+        "integrations",
+        "ownership entity"
+      ],
+      "sourceNote": "Pasted project list + CV + earlier notes. Modules list differs slightly: pasted list has Projects/Inventory/Support; CV says scheduling.",
+      "featuredCandidate": true,
+      "links": {
+        "live": "https://axiora-dusky.vercel.app"
+      },
+      "statusConflict": "Pasted list says in development; earlier notes say live at the URL. Confirm."
+    },
+    {
+      "slug": "buildrift",
+      "title": "BUILDRIFT",
+      "summary": "Web3 platform that turns event participation into verified builder reputation.",
+      "category": "Web3",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "in-development",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Architecture",
+        "Implementation"
+      ],
+      "technologies": [
+        "Next.js App Router",
+        "React",
+        "TypeScript",
+        "Tailwind CSS",
+        "Supabase PostgreSQL",
+        "IPFS",
+        "SIWE",
+        "Vercel"
+      ],
+      "contributions": [
+        {
+          "area": "architecture",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm exact scope"
+        },
+        {
+          "area": "frontend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        },
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status",
+        "ownership",
+        "features",
+        "live URL",
+        "relationship to vaultx.website"
+      ],
+      "sourceNote": "Earlier notes: ongoing, with the use case above. Pasted list says previously worked on and does not know the use case. vaultx.website appears beside it in the pasted text; confirm whether related.",
+      "featuredCandidate": true,
+      "statusConflict": "Ongoing (earlier notes) vs previously worked on (pasted list). Confirm."
+    },
+    {
+      "slug": "jimmarof",
+      "title": "Jimmarof",
+      "summary": "Multi-vendor online marketplace for Nigeria (auto hub, many product categories).",
+      "category": "E-commerce / marketplace",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "live",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Backend",
+        "Payments",
+        "Frontend"
+      ],
+      "technologies": [
+        "PHP",
+        "MySQL",
+        "Bootstrap",
+        "JavaScript",
+        "Paystack",
+        "Flutterwave",
+        "REST API"
+      ],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        },
+        {
+          "area": "integrations",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Paystack and Flutterwave; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status",
+        "ownership",
+        "scope",
+        "contributors"
+      ],
+      "sourceNote": "Earlier notes only; not in the pasted list.",
+      "featuredCandidate": true,
+      "links": {
+        "live": "https://jimmarof.com"
+      }
+    },
+    {
+      "slug": "realtyintel",
+      "title": "RealtyIntel",
+      "summary": "Real-estate intelligence and lead-management system that helps an agency understand and follow up prospective property buyers.",
+      "category": "Business software",
+      "type": "work",
+      "ownership": "client",
+      "status": "in-development",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Backend",
+        "Data structure",
+        "Lead follow-up design"
+      ],
+      "technologies": [],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Founder-stated primary area: backend and data structure. Confirm."
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "client or owned",
+        "frontend",
+        "database schema",
+        "deployment status",
+        "integrations",
+        "permission to show"
+      ],
+      "sourceNote": "Pasted list. Do NOT publish lead names, contact details or the paused-database discussion.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "deen-drip",
+      "title": "Deen Drip",
+      "summary": "E-commerce storefront and admin dashboard for an Islamic-inspired streetwear brand.",
+      "category": "E-commerce",
+      "type": "work",
+      "ownership": "client",
+      "status": "in-development",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Design direction",
+        "Frontend",
+        "E-commerce architecture",
+        "Admin experience",
+        "Payment integration planning"
+      ],
+      "technologies": [],
+      "contributions": [
+        {
+          "area": "product-design",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Confirm"
+        },
+        {
+          "area": "frontend",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Confirm"
+        },
+        {
+          "area": "integrations",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Payment integration planning; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "client name and permission",
+        "stack",
+        "status",
+        "live URL",
+        "who owns payments"
+      ],
+      "sourceNote": "Pasted list. Commercial terms and infra choices are internal only (see CONTENT-NOTES).",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "cahootz",
+      "title": "Cahootz",
+      "summary": "University-focused study platform built around structured study sessions, accountability and collaboration.",
+      "category": "Education",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "concept",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Product concept",
+        "Technical planning"
+      ],
+      "technologies": [],
+      "contributions": [
+        {
+          "area": "product-design",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Independent startup concept; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status",
+        "stack",
+        "whether development has started"
+      ],
+      "sourceNote": "Pasted list + earlier notes (working brand name; Study Together feature).",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "wahalacheck",
+      "title": "WahalaCheck",
+      "summary": "Community-sourced Telegram bot for real-time fuel availability, power outage status and fair-price checks across Nigeria; live-tested with real users.",
+      "category": "Bots / community tools",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "live",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Design",
+        "Development",
+        "Deployment"
+      ],
+      "technologies": [
+        "Node.js",
+        "Telegram Bot API"
+      ],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "From CV: built and deployed; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "live link",
+        "usage numbers (do not claim)",
+        "date"
+      ],
+      "sourceNote": "CV (fuller than the pasted list, which had no details).",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "retention-saas",
+      "title": "Multi-Channel Retention and Lifecycle SaaS",
+      "summary": "Bootstrapped SaaS that automates personalised customer follow-ups and upselling over WhatsApp, Telegram and web, with an industry-configurable retention engine.",
+      "category": "Business software",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "in-development",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Design",
+        "Development"
+      ],
+      "technologies": [
+        "Node.js",
+        "WhatsApp API",
+        "Telegram API"
+      ],
+      "contributions": [
+        {
+          "area": "architecture",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "From CV; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "name",
+        "status",
+        "paying client",
+        "ownership"
+      ],
+      "sourceNote": "CV + earlier notes.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "auth-dashboard-system",
+      "title": "Auth and Dashboard System",
+      "summary": "Authentication flow with JWT, protected routes and RBAC, plus admin and user dashboards with real-time updates.",
+      "category": "Web application",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "internal-testing",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Design",
+        "Full-stack development"
+      ],
+      "technologies": [
+        "React",
+        "Node.js",
+        "Express",
+        "PostgreSQL",
+        "JWT"
+      ],
+      "contributions": [
+        {
+          "area": "frontend",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "From CV; confirm"
+        },
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "From CV; confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "whether public",
+        "status",
+        "repo"
+      ],
+      "sourceNote": "CV. Its '15+ endpoints' claim is the founder's; do not show without confirming.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "raws-apparel",
+      "title": "Raws Apparel",
+      "summary": "Apparel web project.",
+      "category": "E-commerce",
+      "type": "work",
+      "ownership": "client",
+      "status": "archived",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Implementation",
+        "Deployment setup"
+      ],
+      "technologies": [
+        "Vue.js",
+        "Vite",
+        "Firebase",
+        "Cloudinary",
+        "Render"
+      ],
+      "contributions": [
+        {
+          "area": "frontend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status (placeholder)",
+        "client or own",
+        "features"
+      ],
+      "sourceNote": "Pasted list: previously worked on; details limited.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "edunexs-learnsphere",
+      "title": "Edunexs LearnSphere",
+      "summary": "Learning and examination-preparation platform covering JAMB, WAEC, BECE, ACT and GCE formats.",
+      "category": "Education",
+      "type": "work",
+      "ownership": "client",
+      "status": "archived",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Technical implementation",
+        "Backend architecture"
+      ],
+      "technologies": [
+        "MongoDB Atlas",
+        "Cloudinary",
+        "SendGrid"
+      ],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status (placeholder)",
+        "CBT engine details",
+        "client or own"
+      ],
+      "sourceNote": "Pasted list.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "chat-app-v2",
+      "title": "chat-app-v2",
+      "summary": "Real-time chat application.",
+      "category": "Communication",
+      "type": "project",
+      "ownership": "founder-independent",
+      "status": "archived",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Full-stack implementation"
+      ],
+      "technologies": [
+        "Express 5",
+        "Socket.IO",
+        "Supabase",
+        "Vite",
+        "React"
+      ],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "led",
+          "notes": "Confirm"
+        },
+        {
+          "area": "frontend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status (placeholder)",
+        "features (groups, DMs, attachments, calls: do not assume)"
+      ],
+      "sourceNote": "Pasted list.",
+      "featuredCandidate": false
+    },
+    {
+      "slug": "teamnotifier",
+      "title": "TeamNotifier",
+      "summary": "Team notification app delivering email and push notifications to a team of about 30 users.",
+      "category": "Mobile / notifications",
+      "type": "work",
+      "ownership": "client",
+      "status": "archived",
+      "statusVerifiedOn": "UNVERIFIED",
+      "roles": [
+        "Application",
+        "Notification infrastructure"
+      ],
+      "technologies": [
+        "Expo",
+        "Supabase",
+        "Email notifications",
+        "Push notifications"
+      ],
+      "contributions": [
+        {
+          "area": "backend",
+          "who": "Faruq Ariyo",
+          "role": "contributed",
+          "notes": "Confirm"
+        }
+      ],
+      "verified": false,
+      "openFields": [
+        "status (placeholder)",
+        "single or multi-team",
+        "client or own"
+      ],
+      "sourceNote": "Pasted list.",
+      "featuredCandidate": false
+    }
+  ]
+}

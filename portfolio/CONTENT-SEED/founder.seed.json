@@ -1,0 +1,104 @@
+{
+  "_readme": "Seed facts from the founder's CV and earlier notes. 'publish' says what to do: yes (safe once he approves wording), confirm (ask first), never.",
+  "facts": [
+    {
+      "k": "displayName",
+      "v": "Faruq Ariyo",
+      "publish": "confirm",
+      "note": "CV header reads 'FARUQ OLADURA A.' Decide one public name and make CV and site match."
+    },
+    {
+      "k": "role",
+      "v": "Full-stack developer; founder of HafTech",
+      "publish": "yes"
+    },
+    {
+      "k": "experience",
+      "v": "4+ years",
+      "publish": "yes",
+      "note": "Consistent with Jan 2022 start."
+    },
+    {
+      "k": "location",
+      "v": "Lagos, Nigeria; open to global remote",
+      "publish": "confirm"
+    },
+    {
+      "k": "currentEmployer",
+      "v": "Full Stack Developer, Telluxa NG (remote), since Mar 2024",
+      "publish": "confirm",
+      "note": "Decide whether the employer appears on the HafTech site."
+    },
+    {
+      "k": "stephotec",
+      "v": "Intern Jan-Dec 2022 (awarded Best Intern of the Year); Full Stack Developer and Student Trainer Feb 2023-Feb 2024",
+      "publish": "confirm",
+      "note": "Award is in his CV; keep evidence available."
+    },
+    {
+      "k": "education",
+      "v": "B.Sc. Computer Science (in progress), University of the People; B.Sc. Statistics (concurrent, expected Nov 2030), LAUTECH Ogbomoso",
+      "publish": "yes"
+    },
+    {
+      "k": "skills",
+      "v": [
+        "React.js",
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "Redux",
+        "REST and GraphQL APIs",
+        "JWT/RBAC",
+        "PostgreSQL",
+        "MySQL",
+        "MongoDB",
+        "Redis",
+        "Python",
+        "PHP",
+        "AWS",
+        "Docker",
+        "CI/CD (GitHub Actions)",
+        "Cypress",
+        "Postman",
+        "Figma"
+      ],
+      "publish": "yes",
+      "note": "Plain lists only, no skill bars or percentages."
+    },
+    {
+      "k": "links",
+      "v": {
+        "linkedin": "https://linkedin.com/in/fsdev-faruq",
+        "x": "https://x.com/faruq_dev",
+        "github": "handle eff-1 (confirm full URL)"
+      },
+      "publish": "yes"
+    },
+    {
+      "k": "email",
+      "v": "ariyofaruq1@gmail.com (personal); haftechhq@gmail.com (HafTech)",
+      "publish": "confirm",
+      "note": "Decide which receives the contact form."
+    },
+    {
+      "k": "hafTechDescription",
+      "v": "HafTech is a personal brand delivering freelance client projects and self-built products alongside full-time work (CV wording).",
+      "publish": "confirm",
+      "note": "Drives the we-versus-I decision."
+    },
+    {
+      "k": "phone",
+      "v": "(in CV)",
+      "publish": "never",
+      "note": "Not on the public site."
+    },
+    {
+      "k": "cvMetrics",
+      "v": "Employer-side claims such as endpoint counts and 'eliminating unauthorized-access incidents'",
+      "publish": "never",
+      "note": "Do not reuse without his confirmation and employer-safe wording."
+    }
+  ]
+}

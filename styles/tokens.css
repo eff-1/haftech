@@ -1,0 +1,66 @@
+:root {
+  --ht-graphite: #20221f;
+  --ht-ivory: #f1efe8;
+  --ht-paper: #faf9f5;
+  --ht-blue: #344c68;
+  --ht-blue-hl: #7894b1;
+  --ht-blue-hl-dark: #9db5cf;
+  --ht-concrete: #a5a49b;
+  --ht-border: #d9d7cf;
+  --ht-border-strong: #8e8d85;
+  --ht-muted-text: #686963; /* NOT #74756F: fails AA */
+
+  --bg: var(--ht-ivory);
+  --surface: var(--ht-paper);
+  --text: var(--ht-graphite);
+  --text-2: var(--ht-muted-text);
+  --accent: var(--ht-blue);
+  --line: var(--ht-border);
+  --focus: 2px solid var(--ht-blue);
+  --focus-offset: 3px;
+  --radius: 0;
+
+  --font-display: "Boska", "Boska Fallback", "Iowan Old Style", Georgia, serif;
+  --font-body: "Switzer", "Switzer Fallback", Inter, system-ui, sans-serif;
+  --font-mono: "Monaspace Neon", "Monaspace Fallback", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 144px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --max: 1440px;
+  --section-y: var(--s-8);
+
+  --step--2: clamp(0.75rem, 0.7rem + 0.1vw, 0.78rem); /* floor 12px */
+  --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.12rem + 0.4vw, 1.4rem);
+  --step-2: clamp(1.44rem, 1.3rem + 0.7vw, 1.8rem);
+  --step-3: clamp(1.73rem, 1.5rem + 1.15vw, 2.4rem);
+  --step-4: clamp(2.07rem, 1.7rem + 1.85vw, 3.2rem);
+  --step-5: clamp(2.49rem, 1.9rem + 2.95vw, 4.4rem);
+  --step-6: clamp(2.99rem, 2rem + 4.95vw, 6.6rem); /* hero only */
+
+  --dur-micro: 180ms;
+  --dur-ui: 280ms;
+  --dur-image: 800ms;
+  --dur-headline: 900ms;
+  --dur-sequence: 1500ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (min-width: 768px) {
+  :root { --section-y: var(--s-9); }
+}
+@media (min-width: 1024px) {
+  :root { --section-y: var(--s-10); }
+}
+

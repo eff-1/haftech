@@ -1,0 +1,12 @@
+flowchart TD
+  DEV["Local development"] --> GIT["GitHub repository"]
+  GIT --> PR["Pull request"]
+  PR --> CI["CI: tsc, eslint, schema check, unit tests"]
+  CI --> PREV["Vercel preview URL"]
+  PREV --> E2E["Playwright e2e + axe a11y"]
+  E2E --> LH["Lighthouse CI budgets"]
+  LH --> GATE{"All gates pass?"}
+  GATE -- "No" --> PR
+  GATE -- "Yes" --> MAIN["Merge to main"]
+  MAIN --> PROD["Production on haftech.com"]
+  PROD --> MON["Search Console, analytics, CrUX/RUM monitoring"]
