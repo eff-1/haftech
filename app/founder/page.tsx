@@ -6,7 +6,7 @@ import { getProjects } from "@/lib/content";
 import { StatusTag } from "@/components/ui/StatusTag";
 import { JsonLd, getPersonJsonLd } from "@/components/seo/JsonLd";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.site";
 
 export const metadata: Metadata = {
   title: "Faruq Ariyo — Founder & Full-Stack Engineer at HafTech",

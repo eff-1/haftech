@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllProjects } from "@/lib/content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://haftech.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://haftech.site";
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [

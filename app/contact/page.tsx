@@ -3,7 +3,7 @@ import { SectionStrip } from "@/components/ui/SectionStrip";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { JsonLd, getContactPageJsonLd } from "@/components/seo/JsonLd";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.site";
 
 export const metadata: Metadata = {
   title: "Contact & Project Inquiries — HafTech Studio",

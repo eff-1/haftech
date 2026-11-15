@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     const recipient = process.env.CONTACT_TO_EMAIL || "haftechhq@gmail.com";
-    const sender = process.env.CONTACT_FROM_EMAIL || "no-reply@haftech.com";
+    const sender = process.env.CONTACT_FROM_EMAIL || "no-reply@haftech.site";
     const apiKey = process.env.EMAIL_API_KEY;
 
     if (apiKey) {

@@ -115,10 +115,10 @@ Copy `.env.example` to `.env.local` to configure environment secrets:
 
 | Variable | Description | Default |
 |---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | Canonical origin of the production site | `https://haftech.com` |
+| `NEXT_PUBLIC_SITE_URL` | Canonical origin of the production site | `https://haftech.site` |
 | `NEXT_PUBLIC_SHOW_UNVERIFIED` | Toggle to show unverified projects (`true`/`false`) | `false` |
 | `CONTACT_TO_EMAIL` | Inbox destination for contact form submissions | `haftechhq@gmail.com` |
-| `CONTACT_FROM_EMAIL` | Verified sending address for transactional emails | `studio@haftech.com` |
+| `CONTACT_FROM_EMAIL` | Verified sending address for transactional emails | `studio@haftech.site` |
 | `EMAIL_API_KEY` | Resend / email provider API key | `""` |
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile bot verification secret | `""` |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key | `""` |
@@ -142,7 +142,7 @@ Before full commercial launch, the following items from the Decision Register re
 
 1. **O-01 / O-02 (Logo & Wordmark)**: Provide vector SVG master asset for the approved mark (current build uses the architectural monogram).
 2. **O-05 (Font Licensing)**: Confirm ITF / Fontshare written consent for self-hosting Switzer Variable in production.
-3. **O-06 (Domain & Email)**: Confirm ownership and DNS control of `haftech.com`.
+3. **O-06 (Domain & Email - Confirmed)**: Domain confirmed as `haftech.site`.
 4. **O-08 (Founder Portrait)**: Supply high-resolution monochrome founder portrait (current build features an accessible architectural placeholder).
 5. **O-09 (Founder Bio)**: Confirm factual dates, academic degrees, and professional certifications.
 6. **O-11 to O-14 (Case Studies)**: Obtain client permission sign-offs to display client names and interface captures for REALTYINTEL and DEEN DRIP.
@@ -156,8 +156,8 @@ Before full commercial launch, the following items from the Decision Register re
 ## 8. Domain, DNS & Email Launch Runbook (doc 14)
 
 ### DNS Records (Vercel)
-- **Apex domain (`haftech.com`)**: `A` record pointing to `76.76.21.21`
-- **Subdomain (`www.haftech.com`)**: `CNAME` pointing to `cname.vercel-dns.com`
+- **Apex domain (`haftech.site`)**: `A` record pointing to `76.76.21.21`
+- **Subdomain (`www.haftech.site`)**: `CNAME` pointing to `cname.vercel-dns.com`
 
 ### Email Authentication Records
 To ensure 100% inbox delivery and protect the domain against spoofing:
@@ -167,9 +167,9 @@ To ensure 100% inbox delivery and protect the domain against spoofing:
   ```
   *(Adjust includes based on the active mailbox and transactional provider).*
 - **DKIM**: Add the 2048-bit selector TXT/CNAME records provided by the mailbox and Resend/SendGrid providers.
-- **DMARC**: Add the following TXT record at `_dmarc.haftech.com`:
+- **DMARC**: Add the following TXT record at `_dmarc.haftech.site`:
   ```text
-  v=DMARC1; p=none; rua=mailto:dmarc-reports@haftech.com; pct=100; sp=none
+  v=DMARC1; p=none; rua=mailto:dmarc-reports@haftech.site; pct=100; sp=none
   ```
   *(Transition from `p=none` to `p=quarantine` after initial delivery telemetry confirms alignment).*
 

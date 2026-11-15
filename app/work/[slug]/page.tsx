@@ -8,7 +8,7 @@ import { ContributionMatrix } from "@/components/ui/ContributionMatrix";
 import { ImageMask } from "@/components/motion/ImageMask";
 import { JsonLd, getProjectJsonLd } from "@/components/seo/JsonLd";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.site";
 
 export async function generateStaticParams() {
   const slugs = getAllProjectSlugs("work");
