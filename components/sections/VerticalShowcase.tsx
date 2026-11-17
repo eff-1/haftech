@@ -31,6 +31,8 @@ export interface VerticalDomain {
     description: string;
     slug: string;
     liveUrl?: string;
+    videoUrl?: string;
+    imageUrl?: string;
     technologies: string[];
     metrics: { label: string; value: string }[];
     highlight: string;
@@ -343,47 +345,67 @@ export function VerticalShowcase() {
                 </div>
 
                 {/* Simulated High-Res Interactive Viewport */}
-                <div className="p-6 md:p-8 flex flex-col justify-between min-h-[300px] relative overflow-hidden bg-gradient-to-br from-[var(--bg)] via-surface to-[var(--bg)]">
-                  <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 rounded-full bg-[var(--accent)] opacity-5 blur-2xl pointer-events-none" />
+                <div className="relative min-h-[320px] overflow-hidden bg-black flex flex-col justify-between">
+                  {activeVertical.flagship.videoUrl ? (
+                    <video
+                      key={activeVertical.flagship.videoUrl}
+                      src={activeVertical.flagship.videoUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : activeVertical.flagship.imageUrl ? (
+                    <img
+                      src={activeVertical.flagship.imageUrl}
+                      alt={activeVertical.flagship.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="p-6 md:p-8 flex flex-col justify-between min-h-[320px] relative overflow-hidden bg-gradient-to-br from-[var(--bg)] via-surface to-[var(--bg)] w-full">
+                      <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 rounded-full bg-[var(--accent)] opacity-10 blur-2xl pointer-events-none" />
 
-                  {/* Header inside viewport */}
-                  <div className="flex justify-between items-start border-b border-line/40 pb-4">
-                    <div>
-                      <span className="text-[10px] font-mono tracking-wider text-[var(--accent)] uppercase font-semibold">
-                        ACTIVE SERVICE DEPLOYMENT
-                      </span>
-                      <h4 className="text-xl font-medium mt-1 text-[var(--text)]">
-                        {activeVertical.flagship.title}
-                      </h4>
-                    </div>
-                    <span className="font-mono text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
-                      VERIFIED PRODUCTION
-                    </span>
-                  </div>
-
-                  {/* Stack Tech Pills */}
-                  <div className="my-6 space-y-3">
-                    <p className="text-[11px] font-mono text-[var(--text-2)]">CORE ARCHITECTURE STACK:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {activeVertical.flagship.technologies.map((t) => (
-                        <span
-                          key={t}
-                          className="px-2.5 py-1 rounded bg-surface border border-line font-mono text-xs text-[var(--text)] shadow-2xs"
-                        >
-                          {t}
+                      {/* Header inside viewport */}
+                      <div className="flex justify-between items-start border-b border-line/40 pb-4">
+                        <div>
+                          <span className="text-[10px] font-mono tracking-wider text-[var(--accent)] uppercase font-semibold">
+                            ACTIVE SERVICE DEPLOYMENT
+                          </span>
+                          <h4 className="text-xl font-medium mt-1 text-[var(--text)]">
+                            {activeVertical.flagship.title}
+                          </h4>
+                        </div>
+                        <span className="font-mono text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                          VERIFIED PRODUCTION
                         </span>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* Footer status within viewport */}
-                  <div className="pt-4 border-t border-line/40 flex justify-between items-center text-xs font-mono text-[var(--text-2)]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      Continuous Integration Verified
-                    </span>
-                    <span className="text-[var(--text)]">HafTech Studio Engine</span>
-                  </div>
+                      {/* Stack Tech Pills */}
+                      <div className="my-6 space-y-3">
+                        <p className="text-[11px] font-mono text-[var(--text-2)]">CORE ARCHITECTURE STACK:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {activeVertical.flagship.technologies.map((t) => (
+                            <span
+                              key={t}
+                              className="px-2.5 py-1 rounded bg-surface border border-line font-mono text-xs text-[var(--text)] shadow-2xs"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Footer status within viewport */}
+                      <div className="pt-4 border-t border-line/40 flex justify-between items-center text-xs font-mono text-[var(--text-2)]">
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          Continuous Integration Verified
+                        </span>
+                        <span className="text-[var(--text)]">HafTech Studio Engine</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

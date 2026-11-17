@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { SectionStrip } from "@/components/ui/SectionStrip";
 import { ImageMask } from "@/components/motion/ImageMask";
 import { getProjects } from "@/lib/content";
@@ -55,13 +56,15 @@ export default function FounderPage() {
       {/* Hero introduction */}
       <div className="grid gap-12 lg:grid-cols-12 items-start">
         <div className="lg:col-span-5">
-          <ImageMask aspectRatio="4 / 5" className="border border-line bg-surface">
-            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-              <p className="label">Portrait Pending</p>
-              <p className="text-xs text-[var(--text-2)] mt-1">
-                Art-directed portrait photography scheduled for production release.
-              </p>
-            </div>
+          <ImageMask aspectRatio="4 / 5" className="border border-line bg-surface relative overflow-hidden shadow-xl rounded-sm">
+            <Image
+              src="/images/founder-portrait.jpg"
+              alt="Faruq Ariyo — Founder & Systems Engineer at HafTech"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover object-center grayscale hover:grayscale-0 transition-all duration-700 ease-out"
+            />
           </ImageMask>
 
           <div className="mt-6 border border-line bg-surface p-4 text-xs space-y-2">
