@@ -93,44 +93,56 @@ export function SiteNav() {
       }}
     >
       <div className="wrap flex items-center justify-between" style={{ minHeight: 64 }}>
-        {/* LOGO PLACEHOLDER: not approved */}
         <Link
           href="/"
+          className="group inline-flex items-center gap-2.5 no-underline"
           style={{
             fontFamily: "var(--font-display)",
             fontWeight: 600,
-            fontSize: "1.5rem",
+            fontSize: "1.35rem",
             color: "var(--text)",
-            textDecoration: "none",
           }}
         >
-          HafTech
+          <span className="flex h-7 w-7 items-center justify-center rounded bg-[var(--text)] font-serif text-sm font-bold text-[var(--bg)] shadow-xs transition-transform duration-200 group-hover:scale-105">
+            H
+          </span>
+          <span>HafTech</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden md:block">
-          <ul
-            className="flex"
-            style={{ gap: "var(--s-5)", listStyle: "none", margin: 0, padding: 0 }}
+        <div className="hidden md:flex items-center gap-6">
+          <nav aria-label="Primary">
+            <ul
+              className="flex items-center"
+              style={{ gap: "var(--s-5)", listStyle: "none", margin: 0, padding: 0 }}
+            >
+              {nav.map((n) => (
+                <li key={n.href}>
+                  <Link
+                    href={n.href}
+                    className="nav-link font-mono text-xs tracking-wide uppercase"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      minHeight: 48,
+                      color: "var(--text)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {n.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <Link
+            href="/contact"
+            className="btn text-xs font-mono tracking-wider uppercase shadow-xs hover:shadow-sm"
+            style={{ minHeight: 38, paddingInline: "var(--s-4)", fontSize: "11px" }}
           >
-            {nav.map((n) => (
-              <li key={n.href}>
-                <Link
-                  href={n.href}
-                  className="nav-link"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    minHeight: 48,
-                    color: "var(--text)",
-                    textDecoration: "none",
-                  }}
-                >
-                  {n.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+            Contact ↗
+          </Link>
+        </div>
 
         <button
           type="button"

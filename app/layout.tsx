@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/layout/SiteNav";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { copy } from "@/content/copy";
 import { JsonLd, getOrganizationJsonLd, getWebSiteJsonLd } from "@/components/seo/JsonLd";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://haftech.site";
 
@@ -47,10 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={websiteJsonLd} />
       </head>
       <body>
-        <a className="skip-link" href="#main">Skip to content</a>
-        <SiteNav />
-        <main id="main">{children}</main>
-        <SiteFooter />
+        <SmoothScroll>
+          <a className="skip-link" href="#main">Skip to content</a>
+          <SiteNav />
+          <main id="main">{children}</main>
+          <SiteFooter />
+        </SmoothScroll>
       </body>
     </html>
   );
