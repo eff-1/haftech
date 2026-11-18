@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { BuildLineRail } from "@/components/layout/BuildLineRail";
 import { copy } from "@/content/copy";
 import { JsonLd, getOrganizationJsonLd, getWebSiteJsonLd } from "@/components/seo/JsonLd";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SmoothScroll>
           <a className="skip-link" href="#main">Skip to content</a>
+          <BuildLineRail />
           <SiteNav />
           <main id="main">{children}</main>
           <SiteFooter />

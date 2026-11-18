@@ -1,48 +1,17 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import Link from "next/link";
-import { HeroBuildStage } from "./HeroBuildStage";
-import { gsap } from "gsap";
-import { useReducedMotion } from "@/components/motion/useReducedMotion";
+import { HeroAssemblyStage } from "./HeroAssemblyStage";
 
 export function Hero() {
-  const underlineRef = useRef<SVGLineElement | null>(null);
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const underline = underlineRef.current;
-    if (!underline) return;
-
-    if (reducedMotion) {
-      gsap.set(underline, { strokeDashoffset: 0 });
-      return;
-    }
-
-    gsap.set(underline, { strokeDashoffset: 280 });
-
-    // Sync blue underline draw with the wireframe dissolution at t = 2.4s
-    const tween = gsap.to(underline, {
-      strokeDashoffset: 0,
-      duration: 0.8,
-      ease: "power2.out",
-      delay: 2.4,
-    });
-
-    return () => {
-      tween.kill();
-    };
-  }, [reducedMotion]);
-
   return (
     <section
-      className="relative overflow-hidden border-b border-line bg-[var(--bg)] min-h-[82vh] lg:min-h-[88vh] flex items-center"
+      className="relative overflow-visible border-b border-line bg-[var(--bg)]"
       aria-labelledby="hero-h1"
     >
-      {/* 12-Column Faint Hairline Grid (Architect's drafting grid) */}
+      {/* 12-Column Faint Hairline Drafting Grid */}
       <div
-        ref={gridRef}
         className="pointer-events-none absolute inset-0 z-0 opacity-40"
         style={{
           backgroundImage:
@@ -52,16 +21,16 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      <div className="wrap relative z-10 w-full py-12 lg:py-16">
-        {/* Top Monospace Anchor */}
-        <div className="flex items-center gap-3 font-mono text-xs text-[var(--text-2)] tracking-widest uppercase mb-8">
+      <div className="wrap relative z-10 w-full pt-10 sm:pt-14 pb-4">
+        {/* Top Monospace Strip */}
+        <div className="flex items-center gap-3 font-mono text-xs text-[var(--text-2)] tracking-widest uppercase mb-6 sm:mb-8">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--ht-blue)]" />
           <span>STUDIO · SOFTWARE ENGINEERING</span>
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-12 items-center">
-          {/* Columns 1–7: Huge Headline + Support + CTAs (Word budget <= 20) */}
-          <div className="lg:col-span-7">
+        <div className="grid gap-8 lg:grid-cols-12 items-start">
+          {/* Columns 1–7: Headline (LCP Element) + Support + CTAs (Word budget <= 20) */}
+          <div className="lg:col-span-7 lg:sticky lg:top-28 pt-2">
             <h1
               id="hero-h1"
               style={{
@@ -75,7 +44,7 @@ export function Hero() {
             >
               <span className="block">Ideas deserve more</span>
               <span className="block">than execution.</span>
-              <span className="block mt-2">
+              <span className="block mt-1 sm:mt-2">
                 They deserve{" "}
                 <span className="relative inline-block text-[var(--text)]">
                   engineering.
@@ -86,7 +55,7 @@ export function Hero() {
                     aria-hidden="true"
                   >
                     <line
-                      ref={underlineRef}
+                      id="hero-underline"
                       x1="0"
                       y1="1.5"
                       x2="280"
@@ -95,6 +64,7 @@ export function Hero() {
                       strokeWidth="2.5"
                       strokeDasharray="280"
                       strokeDashoffset="280"
+                      className="transition-all duration-150 ease-out"
                     />
                   </svg>
                 </span>
@@ -113,7 +83,7 @@ export function Hero() {
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/contact"
-                className="btn text-xs font-mono tracking-wider uppercase"
+                className="btn text-xs font-mono tracking-wider uppercase shadow-xs hover:shadow-md"
                 style={{ minHeight: 48, paddingInline: "var(--s-5)" }}
               >
                 Start a project
@@ -129,9 +99,9 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Columns 8–12: The Build Stage (~80vh on desktop) */}
-          <div className="lg:col-span-5 flex justify-center">
-            <HeroBuildStage />
+          {/* Columns 8–12: The Assembly Stage (Scroll-driven sticky container) */}
+          <div className="lg:col-span-5">
+            <HeroAssemblyStage />
           </div>
         </div>
       </div>
