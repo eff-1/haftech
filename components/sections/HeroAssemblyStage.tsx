@@ -2,13 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const LAYERS = [
   { id: "ui", label: "01 // UI & STATE", desc: "Design System & React Runtime", startY: -110 },
@@ -74,111 +68,144 @@ export function HeroAssemblyStage() {
     if (!container || !stage || !slab) return;
 
     if (reducedMotion) {
-      // Reduced motion: Render finished assembled slab statically
-      gsap.set(slab, { opacity: 1, scale: 1 });
-      gsap.set(layerEls, { opacity: 0 });
-      if (connector) gsap.set(connector, { opacity: 0 });
-      if (railExit) gsap.set(railExit, { scaleY: 1, opacity: 1 });
+      slab.style.opacity = "1";
+      slab.style.transform = "scale(1)";
+      layerEls.forEach((el) => {
+        if (el) el.style.opacity = "0";
+      });
+      if (connector) connector.style.opacity = "0";
+      if (railExit) {
+        railExit.style.opacity = "1";
+        railExit.style.transform = "scaleY(1)";
+      }
       return;
     }
 
-    // Initial state on load (t = 0s): Exploded into five layers
-    gsap.set(slab, { opacity: 0, scale: 0.94 });
-    layerEls.forEach((el, i) => {
-      gsap.set(el, {
-        y: LAYERS[i].startY,
-        opacity: 0.95,
-        scale: 1,
-      });
-    });
-    if (connector) gsap.set(connector, { opacity: 0.75, strokeDashoffset: 0 });
-    if (railExit) gsap.set(railExit, { scaleY: 0, opacity: 0 });
+    const updateAssembly = (p: number) => {
+      // 1. Layers travel together to center (p = 0 to 0.75)
+      for (let i = 0; i < layerEls.length; i++) {
+        const el = layerEls[i];
+        if (!el) continue;
+        const targetY = LAYERS[i].startY * (1 - Math.min(1, p * 1.33));
+        const opacity = p > 0.7 ? Math.max(0, 1 - (p - 0.7) * 3.3) : 0.95;
+        el.style.transform = `translateY(${targetY}px)`;
+        el.style.opacity = `${opacity}`;
+      }
 
-    // ScrollTrigger assembly: scroll drives layers together into finished slab
-    const st = ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: 0.6,
-      onUpdate: (self) => {
-        const p = self.progress; // 0 to 1
+      // 2. Connectors fade out
+      if (connector) {
+        connector.style.opacity = `${Math.max(0, 0.75 * (1 - p * 1.5))}`;
+      }
 
-        // 1. Layers travel together to center (p = 0 to 0.75)
-        layerEls.forEach((el, i) => {
-          if (!el) return;
-          const targetY = LAYERS[i].startY * (1 - Math.min(1, p * 1.33));
-          const opacity = p > 0.7 ? Math.max(0, 1 - (p - 0.7) * 3.3) : 0.95;
-          gsap.set(el, { y: targetY, opacity });
-        });
+      // 3. Finished product slab materializes (p = 0.45 to 1.0)
+      if (p > 0.45) {
+        const slabProgress = (p - 0.45) / 0.55;
+        const slabOpacity = Math.min(1, slabProgress * 1.25);
+        const slabScale = 0.96 + slabProgress * 0.04;
+        slab.style.opacity = `${slabOpacity}`;
+        slab.style.transform = `scale(${slabScale})`;
+      } else {
+        slab.style.opacity = "0";
+      }
 
-        // 2. Connectors fade out as layers merge
-        if (connector) {
-          const connOpacity = Math.max(0, 0.75 * (1 - p * 1.5));
-          gsap.set(connector, { opacity: connOpacity });
-        }
-
-        // 3. Finished product slab materializes (p = 0.5 to 1.0)
-        if (p > 0.45) {
-          const slabProgress = (p - 0.45) / 0.55;
-          const slabOpacity = Math.min(1, slabProgress * 1.25);
-          const slabScale = 0.96 + slabProgress * 0.04;
-          gsap.set(slab, { opacity: slabOpacity, scale: slabScale });
+      // 4. Build line exits downward (p = 0.8 to 1.0)
+      if (railExit) {
+        if (p > 0.8) {
+          const exitProgress = (p - 0.8) / 0.2;
+          railExit.style.opacity = `${exitProgress}`;
+          railExit.style.transform = `scaleY(${exitProgress})`;
         } else {
-          gsap.set(slab, { opacity: 0 });
+          railExit.style.opacity = "0";
+          railExit.style.transform = "scaleY(0)";
         }
+      }
 
-        // 4. Build line exits downward (p = 0.85 to 1.0)
-        if (railExit) {
-          if (p > 0.8) {
-            const exitProgress = (p - 0.8) / 0.2;
-            gsap.set(railExit, { scaleY: exitProgress, opacity: exitProgress });
-          } else {
-            gsap.set(railExit, { scaleY: 0, opacity: 0 });
-          }
-        }
+      // Synchronize underline draw on H1
+      const underline = document.getElementById("hero-underline");
+      if (underline) {
+        const strokeProgress = Math.min(1, Math.max(0, (p - 0.3) / 0.6));
+        underline.style.strokeDashoffset = `${280 * (1 - strokeProgress)}`;
+      }
+    };
 
-        // Synchronize underline draw on H1
-        const underline = document.getElementById("hero-underline");
-        if (underline) {
-          const strokeProgress = Math.min(1, Math.max(0, (p - 0.3) / 0.6));
-          const offset = 280 * (1 - strokeProgress);
-          underline.style.strokeDashoffset = `${offset}`;
-        }
-      },
+    const isFinePointer = window.innerWidth >= 1024 && window.matchMedia("(pointer: fine)").matches;
+
+    if (!isFinePointer) {
+      // Mobile / touch: zero-dependency passive RAF listener. 0ms TBT overhead.
+      let rafId: number;
+      const updateMobile = () => {
+        const rect = container.getBoundingClientRect();
+        const total = rect.height - window.innerHeight;
+        const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+        updateAssembly(p);
+      };
+
+      const onScroll = () => {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(updateMobile);
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      updateMobile();
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        window.removeEventListener("scroll", onScroll);
+      };
+    }
+
+    // Desktop: GSAP ScrollTrigger + mouse tilt
+    let cleaned = false;
+    let stInstance: { kill: () => void } | null = null;
+    let cleanupMouse: (() => void) | null = null;
+
+    Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(([{ gsap }, { ScrollTrigger }]) => {
+      if (cleaned) return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      const st = ScrollTrigger.create({
+        trigger: container,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.6,
+        onUpdate: (self) => updateAssembly(self.progress),
+      });
+
+      stInstance = st;
+
+      if (stack) {
+        const handleMouseMove = (e: MouseEvent) => {
+          const rect = stage.getBoundingClientRect();
+          const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+          const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+          gsap.to(stack, {
+            rotationY: x * 4.5,
+            rotationX: -y * 4.5,
+            duration: 0.5,
+            ease: "power1.out",
+          });
+        };
+        const handleMouseLeave = () => {
+          gsap.to(stack, {
+            rotationY: 0,
+            rotationX: 0,
+            duration: 0.7,
+            ease: "power2.out",
+          });
+        };
+        window.addEventListener("mousemove", handleMouseMove, { passive: true });
+        stage.addEventListener("mouseleave", handleMouseLeave);
+        cleanupMouse = () => {
+          window.removeEventListener("mousemove", handleMouseMove);
+          stage.removeEventListener("mouseleave", handleMouseLeave);
+        };
+      }
     });
-
-    // Subtle pointer tilt (desktop only)
-    const handleMouseMove = (e: MouseEvent) => {
-      if (window.innerWidth < 1024 || !stack) return;
-      const rect = stage.getBoundingClientRect();
-      const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-      const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-
-      gsap.to(stack, {
-        rotationY: x * 4.5,
-        rotationX: -y * 4.5,
-        duration: 0.5,
-        ease: "power1.out",
-      });
-    };
-
-    const handleMouseLeave = () => {
-      if (!stack) return;
-      gsap.to(stack, {
-        rotationY: 0,
-        rotationX: 0,
-        duration: 0.7,
-        ease: "power2.out",
-      });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    stage.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      st.kill();
-      window.removeEventListener("mousemove", handleMouseMove);
-      stage.removeEventListener("mouseleave", handleMouseLeave);
+      cleaned = true;
+      if (stInstance) stInstance.kill();
+      if (cleanupMouse) cleanupMouse();
     };
   }, [reducedMotion]);
 

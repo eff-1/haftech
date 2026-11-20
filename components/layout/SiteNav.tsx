@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { nav } from "@/content/copy";
-import gsap from "gsap";
 import { ease } from "@/components/motion/tokens";
 
 export function SiteNav() {
@@ -21,7 +20,7 @@ export function SiteNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // M10 Mobile menu overlay animation
+  // M10 Mobile menu overlay animation (dynamic GSAP only when menu is toggled)
   useEffect(() => {
     if (!open) return;
 
@@ -35,28 +34,35 @@ export function SiteNav() {
       const validLinks = linksRef.current.filter(Boolean);
 
       if (prefersReduced) {
-        gsap.set(overlay, { clipPath: "inset(0% 0% 0% 0%)" });
-        gsap.set(validLinks, { y: 0, opacity: 1 });
+        overlay.style.clipPath = "inset(0% 0% 0% 0%)";
+        validLinks.forEach((l) => {
+          if (l) {
+            l.style.transform = "none";
+            l.style.opacity = "1";
+          }
+        });
       } else {
-        gsap.set(overlay, { clipPath: "inset(0% 0% 100% 0%)" });
-        gsap.set(validLinks, { y: 24, opacity: 0 });
+        import("gsap").then(({ default: gsap }) => {
+          gsap.set(overlay, { clipPath: "inset(0% 0% 100% 0%)" });
+          gsap.set(validLinks, { y: 24, opacity: 0 });
 
-        const tl = gsap.timeline();
-        tl.to(overlay, {
-          clipPath: "inset(0% 0% 0% 0%)",
-          duration: 0.45,
-          ease: ease.out,
-        }).to(
-          validLinks,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.35,
+          const tl = gsap.timeline();
+          tl.to(overlay, {
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 0.45,
             ease: ease.out,
-            stagger: 0.05,
-          },
-          "-=0.2"
-        );
+          }).to(
+            validLinks,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.35,
+              ease: ease.out,
+              stagger: 0.05,
+            },
+            "-=0.2"
+          );
+        });
       }
     }
 
@@ -75,11 +81,13 @@ export function SiteNav() {
       return;
     }
 
-    gsap.to(overlay, {
-      clipPath: "inset(0% 0% 100% 0%)",
-      duration: 0.3,
-      ease: "power2.in",
-      onComplete: () => setOpen(false),
+    import("gsap").then(({ default: gsap }) => {
+      gsap.to(overlay, {
+        clipPath: "inset(0% 0% 100% 0%)",
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => setOpen(false),
+      });
     });
   };
 
