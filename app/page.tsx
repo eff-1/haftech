@@ -14,9 +14,9 @@ export default function Home() {
     <>
       <Hero />
       <Philosophy />
+      <Capabilities />
       <VerticalShowcase />
       <Visualization />
-      <Capabilities />
       <Methodology />
       <FounderIntro />
       <ClosingCta />
