@@ -1,478 +1,719 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import gsap from "gsap";
-import { layers, layersCaption } from "@/content/copy";
 
-// Enhanced layer data with responsibilities, examples, and failure modes per doc 10 §10.1
+import React, { useState, useEffect, useRef } from "react";
+import { layersCaption } from "@/content/copy";
+import { useReducedMotion } from "@/components/motion/useReducedMotion";
+
 export interface LayerDetail {
   id: string;
+  num: string;
   name: string;
   role: string;
+  guarantee: string;
   responsibilities: string[];
   technologies: string[];
   failureModes: string;
 }
 
-export const layerDetails: LayerDetail[] = [
+export const ARCHITECTURE_LAYERS: LayerDetail[] = [
   {
     id: "ui",
-    name: "User interface",
-    role: "Presentation & Input",
+    num: "01",
+    name: "User Interface",
+    role: "Presentation & Client State",
+    guarantee: "Sub-100ms optimistic updates & zero layout shifts.",
     responsibilities: [
-      "Semantic HTML & responsive layouts",
-      "Accessible interactions (WCAG 2.2 AA)",
-      "Client state management & optimistic updates",
+      "Semantic HTML & accessible ARIA patterns (WCAG 2.2 AA)",
+      "Client state management and optimistic UI mutations",
+      "Responsive, device-agnostic layouts with hardware transforms",
     ],
-    technologies: ["React / Next.js", "Tailwind CSS", "Semantic HTML", "WAI-ARIA"],
-    failureModes: "Layout shifts, unresponsive inputs, hydration mismatches.",
+    technologies: ["React / Next.js", "TypeScript", "Tailwind CSS", "WAI-ARIA"],
+    failureModes: "Hydration mismatches, dropped input states, uncaught boundary exceptions.",
   },
   {
-    id: "app",
-    name: "Application layer",
-    role: "Routing & State Orchestration",
+    id: "edge",
+    num: "02",
+    name: "CDN / Edge",
+    role: "Global Anycast & Static Delivery",
+    guarantee: "Global sub-40ms TTFB for cached assets & edge routing.",
     responsibilities: [
-      "Server-side rendering & static caching",
-      "Session management & request routing",
-      "Client/server boundary coordination",
+      "Geographic routing to nearest Point of Presence (PoP)",
+      "Automatic TLS 1.3 termination and HTTP/3 multiplexing",
+      "Edge cache invalidation and immutable asset versioning",
     ],
-    technologies: ["Next.js App Router", "Server Components", "Middleware"],
-    failureModes: "Memory leaks, unhandled route exceptions, cache invalidation delays.",
+    technologies: ["Vercel Edge Network", "Cloudflare Anycast", "Edge Workers"],
+    failureModes: "Edge cache stampedes, TLS renegotiation drops, stale route caches.",
+  },
+  {
+    id: "gateway",
+    num: "03",
+    name: "Routing & Gateway",
+    role: "Reverse Proxy & Rate Defense",
+    guarantee: "Per-tenant rate limiting and zero unprotected routes.",
+    responsibilities: [
+      "Route dispatch, payload compression, and CORS policy enforcement",
+      "Token-bucket rate limiting against DDoS and automated credential stuffing",
+      "Standardized JSON error contract formatting and health probes",
+    ],
+    technologies: ["Next.js Middleware", "Zod Schema Parser", "Upstash Redis"],
+    failureModes: "Traffic spikes saturating gateway memory, misconfigured CORS headers.",
   },
   {
     id: "auth",
-    name: "Authentication",
-    role: "Identity & Access Control",
+    num: "04",
+    name: "Identity & RBAC",
+    role: "Session Lifecycle & Access Control",
+    guarantee: "Cryptographically signed sessions with instant revocation.",
     responsibilities: [
-      "Credential validation & token issuance",
-      "Role-based access control (RBAC)",
-      "Secure cookie & session lifecycle",
+      "Argon2id password hashing and MFA challenge verification",
+      "Role-based access control (RBAC) and tenant privilege enforcement",
+      "Encrypted, HttpOnly, SameSite session cookie lifecycle",
     ],
-    technologies: ["JWT / Secure Cookies", "OAuth2 / OIDC", "Argon2 / bcrypt"],
-    failureModes: "Token expiration in-flight, replay vulnerabilities, unauthorized privilege escalation.",
-  },
-  {
-    id: "api",
-    name: "API",
-    role: "Contract & Transport",
-    responsibilities: [
-      "Strict input parsing & schema validation",
-      "Rate limiting, throttling & bot filtering",
-      "Standardised JSON error responses",
-    ],
-    technologies: ["REST endpoints", "Zod validation", "Cloudflare Turnstile", "Edge handlers"],
-    failureModes: "Schema payload drift, unhandled rate limit bursts, serialization overhead.",
+    technologies: ["JWT / Secure Cookies", "OAuth2 / OIDC", "Argon2id", "Jose"],
+    failureModes: "Token expiration in-flight, replay vulnerabilities, privilege escalation.",
   },
   {
     id: "logic",
-    name: "Business logic",
-    role: "Domain Rules & Workflows",
+    num: "05",
+    name: "Domain Logic",
+    role: "Business Rules & Workflows",
+    guarantee: "Deterministic state transitions and strict idempotency keys.",
     responsibilities: [
-      "Domain model calculations & validations",
-      "Transaction boundaries & idempotency",
-      "Event dispatching & async tasks",
+      "Pure domain calculations, invoice generation, and discount pricing",
+      "Explicit transaction boundaries with optimistic locking guards",
+      "Domain event dispatching for downstream automated workflows",
     ],
-    technologies: ["TypeScript Domain Services", "State Machines", "Task Queues"],
-    failureModes: "Race conditions, non-idempotent duplicate processing, partial failure rollbacks.",
+    technologies: ["TypeScript Domain Services", "State Machines", "Zod Validation"],
+    failureModes: "Race conditions during simultaneous checkout, non-idempotent duplicate calls.",
+  },
+  {
+    id: "workers",
+    num: "06",
+    name: "Asynchronous Workers",
+    role: "Background Processing & Retries",
+    guarantee: "At-least-once job delivery with exponential backoff & dead-letter isolation.",
+    responsibilities: [
+      "Heavy asynchronous jobs (PDF generation, media encoding, bulk email)",
+      "Scheduled cron automations and ledger reconciliation pipelines",
+      "Dead-letter queue isolation for permanently failing tasks",
+    ],
+    technologies: ["Redis Queues (BullMQ)", "Inngest", "Cron Triggers", "Worker Pools"],
+    failureModes: "Worker queue exhaustion, memory spikes during PDF rendering, poison-pill jobs.",
   },
   {
     id: "db",
-    name: "Database",
-    role: "Persistence & Integrity",
+    num: "07",
+    name: "Database & Cache",
+    role: "ACID Persistence & Integrity",
+    guarantee: "Serializable transactions and foreign-key referential integrity.",
     responsibilities: [
-      "Relational integrity & constraints",
-      "Indexed query optimization",
-      "Automated migration pipelines",
+      "Strict relational schema constraints, indexes, and automated migrations",
+      "Connection pooling and automated read-replica routing",
+      "In-memory Redis cache with sub-2ms read latencies",
     ],
-    technologies: ["PostgreSQL", "Neon / Supabase", "Connection Pooling"],
-    failureModes: "Connection exhaustion, locking bottlenecks, slow unindexed scans.",
-  },
-  {
-    id: "infra",
-    name: "Infrastructure",
-    role: "Runtime & Deployment",
-    responsibilities: [
-      "Global CDN edge caching",
-      "Automated CI/CD pipelines",
-      "Telemetry, health checks & alerts",
-    ],
-    technologies: ["Vercel Edge Network", "Docker", "Zero-downtime deploys"],
-    failureModes: "Cold start spikes, DNS propagation lag, regional network partitions.",
+    technologies: ["PostgreSQL", "Supabase / Neon", "Prisma / Drizzle", "Redis"],
+    failureModes: "Connection pool exhaustion, long-running unindexed table locks, connection timeouts.",
   },
   {
     id: "ext",
-    name: "External integrations",
-    role: "Third-Party Services",
+    num: "08",
+    name: "External Integrations",
+    role: "Third-Party APIs & Webhooks",
+    guarantee: "Circuit-breaker protection isolating external service outages.",
     responsibilities: [
-      "Transactional email & notification hooks",
-      "Payment gateway tokenization & webhooks",
-      "Circuit breakers & exponential retry",
+      "Payment tokenization via Paystack, Stripe, and Flutterwave",
+      "Transactional email dispatch via Resend and Postmark with DKIM/SPF verification",
+      "HMAC cryptographic webhook signature verification",
     ],
-    technologies: ["Resend / Postmark", "Stripe / Paystack", "Webhook verifiers"],
-    failureModes: "Third-party outages, webhook timeout drops, delivery retries.",
+    technologies: ["Paystack / Stripe SDK", "Resend API", "Crypto HMAC", "Circuit Breakers"],
+    failureModes: "Third-party gateway 504 timeouts, dropped webhook notifications.",
+  },
+];
+
+export interface TraceStep {
+  layerIndex: number;
+  stepTitle: string;
+  action: string;
+  businessImpact: string;
+  annotation: string;
+}
+
+export interface Scenario {
+  id: string;
+  name: string;
+  summary: string;
+  steps: TraceStep[];
+}
+
+export const SCENARIOS: Scenario[] = [
+  {
+    id: "signin",
+    name: "Sign In",
+    summary: "Authentication and session token lifecycle.",
+    steps: [
+      {
+        layerIndex: 0, // UI
+        stepTitle: "Client Submits Encrypted Credentials",
+        action: "Client encrypts email and password payload, validates form structure, and dispatches POST /api/auth/login.",
+        businessImpact: "Zero clear-text exposure; client-side validation prevents unnecessary server roundtrips.",
+        annotation: "PAYLOAD: { email, password } · HTTPS/TLS",
+      },
+      {
+        layerIndex: 1, // Edge
+        stepTitle: "Edge TLS Handshake & Geo-Route",
+        action: "CDN terminates TLS 1.3 handshake at the nearest regional PoP within ~25ms and routes to origin.",
+        businessImpact: "Minimizes connection latency across global mobile networks.",
+        annotation: "EDGE POP: LHR1 · TLS 1.3 · 24ms TTFB",
+      },
+      {
+        layerIndex: 2, // Gateway
+        stepTitle: "Rate Limiting & Threat Inspection",
+        action: "Gateway evaluates origin headers and applies token-bucket rate limit (max 5 attempts per 15 min per IP).",
+        businessImpact: "Blocks automated brute-force attacks and credential stuffing before hitting downstream logic.",
+        annotation: "GATEWAY: RATE_OK (4/5 REMAINING)",
+      },
+      {
+        layerIndex: 3, // Auth
+        stepTitle: "Timing-Safe Hash Verification",
+        action: "Identity service evaluates password against stored hash using timing-safe Argon2id comparison.",
+        businessImpact: "Guarantees complete immunity against timing side-channel attacks.",
+        annotation: "AUTH: ARGON2ID_VERIFY = PASS",
+      },
+      {
+        layerIndex: 6, // Database
+        stepTitle: "Tenant Record & Permissions Query",
+        action: "Indexed single-row query fetches user privileges, active organization ID, and MFA challenge status.",
+        businessImpact: "Fast indexed index-scan completes in < 3ms without locking tenant tables.",
+        annotation: "DB QUERY: SELECT WHERE user_id = $1 [2.1ms]",
+      },
+      {
+        layerIndex: 3, // Auth
+        stepTitle: "Encrypted Session Token Issuance",
+        action: "Identity service signs an HttpOnly, Secure, SameSite=Strict JWT cookie and logs audit event.",
+        businessImpact: "Prevents XSS token theft and eliminates CSRF attack vectors entirely.",
+        annotation: "COOKIE: SET-COOKIE __Host-Session; HttpOnly",
+      },
+      {
+        layerIndex: 0, // UI
+        stepTitle: "Session Hydrated & Workspace Rendered",
+        action: "Browser receives authenticated cookie, hydrates user state, and renders private dashboard.",
+        businessImpact: "Sub-200ms total roundtrip delivers an instantaneous, smooth login experience.",
+        annotation: "STATUS: 200 OK · SESSION_ACTIVE",
+      },
+    ],
+  },
+  {
+    id: "checkout",
+    name: "Place an Order",
+    summary: "Transactional checkout and async background worker dispatch.",
+    steps: [
+      {
+        layerIndex: 0, // UI
+        stepTitle: "Shopper Confirms Order",
+        action: "Client attaches unique idempotency UUID and dispatches atomic order payload.",
+        businessImpact: "Prevents accidental double-clicks from charging customer cards twice.",
+        annotation: "POST /api/orders · Idempotency-Key: uuid-v4",
+      },
+      {
+        layerIndex: 2, // Gateway
+        stepTitle: "Idempotency & Schema Validation",
+        action: "Gateway verifies Zod schema structure and checks cache for existing idempotency key.",
+        businessImpact: "Rejects malformed payloads instantly; drops duplicates at the network edge.",
+        annotation: "ZOD: VALID · IDEMPOTENCY: CACHE_MISS",
+      },
+      {
+        layerIndex: 3, // Auth
+        stepTitle: "Session & RBAC Authorization",
+        action: "Validates active customer token and ensures user has permissions to buy on this tenant.",
+        businessImpact: "Ensures tenant boundary isolation and prevents unauthorized purchase requests.",
+        annotation: "RBAC: TENANT_PERM_VERIFIED",
+      },
+      {
+        layerIndex: 4, // Logic
+        stepTitle: "Inventory & Discount Rules",
+        action: "Domain engine validates current inventory reserves, applies promo discounts, and calculates tax.",
+        businessImpact: "Guarantees pricing consistency and prevents overselling out-of-stock items.",
+        annotation: "LOGIC: INVENTORY_RESERVED · TAX_CALC_OK",
+      },
+      {
+        layerIndex: 6, // Database
+        stepTitle: "ACID Transaction & Stock Hold",
+        action: "PostgreSQL transaction locks sku rows, reserves quantity, and records pending order.",
+        businessImpact: "Serializable ACID isolation eliminates race conditions between simultaneous shoppers.",
+        annotation: "SQL: BEGIN ... UPDATE inventory ... COMMIT",
+      },
+      {
+        layerIndex: 7, // External
+        stepTitle: "Payment Tokenization via Gateway",
+        action: "Dispatches payment intent to Paystack / Stripe over circuit-breaker guarded connection.",
+        businessImpact: "Zero cardholder data touches our servers, satisfying PCI-DSS compliance.",
+        annotation: "PAYMENT: INTENT_CONFIRMED · AUTH_CODE",
+      },
+      {
+        layerIndex: 5, // Workers
+        stepTitle: "Asynchronous Queue Dispatch",
+        action: "Dispatches async background jobs to BullMQ queue: generates PDF invoice and sends customer email.",
+        businessImpact: "Moves heavy background tasks off the critical path, keeping checkout response under 200ms.",
+        annotation: "QUEUE: ENQUEUE { job: 'invoice-gen' }",
+      },
+      {
+        layerIndex: 0, // UI
+        stepTitle: "Order Confirmed & Live Tracking",
+        action: "Shopper sees confirmation page with order receipt and real-time fulfillment webhook listener.",
+        businessImpact: "Reassures buyer immediately and drives high post-purchase customer satisfaction.",
+        annotation: "STATUS: 201 CREATED · ORDER #8241",
+      },
+    ],
   },
 ];
 
 export function ArchitectureExplorer() {
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [activeLeg, setActiveLeg] = useState<number | null>(null);
-  const [isTracing, setIsTracing] = useState(false);
-  const [tracePaused, setTracePaused] = useState(false);
-  const [traceStep, setTraceStep] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
+  const [selectedScenarioIdx, setSelectedScenarioIdx] = useState(0);
+  const [selectedLayerIdx, setSelectedLayerIdx] = useState(0);
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isManualInspection, setIsManualInspection] = useState(false);
 
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
-  const markerRef = useRef<SVGCircleElement | null>(null);
+  const scenario = SCENARIOS[selectedScenarioIdx];
+  const steps = scenario.steps;
+  const currentStep = steps[currentStepIdx] || steps[0];
+  const activeLayerIdx = isManualInspection ? selectedLayerIdx : currentStep.layerIndex;
+  const activeLayer = ARCHITECTURE_LAYERS[activeLayerIdx];
 
-  // Request trace path order (down to DB, then back up to UI, with branch to external integrations)
-  // Leg index maps to layer index: UI(0) -> App(1) -> Auth(2) -> API(3) -> Logic(4) -> DB(5) -> Logic(4) -> Ext(7) -> Logic(4) -> API(3) -> App(1) -> UI(0)
-  const traceSequence = [0, 1, 2, 3, 4, 5, 4, 7, 4, 3, 1, 0];
-
+  // Auto-trace playback timer (disabled under reduced motion)
   useEffect(() => {
-    return () => {
-      if (timelineRef.current) {
-        timelineRef.current.kill();
-      }
-    };
-  }, []);
+    if (!isPlaying || prefersReducedMotion) return;
 
-  const runTrace = () => {
-    if (timelineRef.current) {
-      timelineRef.current.kill();
-    }
-
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setIsTracing(true);
-    setTracePaused(false);
-
-    if (prefersReduced) {
-      // Step-based without smooth travelling animation
-      let step = 0;
-      const interval = setInterval(() => {
-        if (step >= traceSequence.length) {
-          clearInterval(interval);
-          setIsTracing(false);
-          setActiveLeg(null);
-        } else {
-          setActiveLeg(traceSequence[step]);
-          setSelectedIdx(traceSequence[step]);
-          setTraceStep(step);
-          step++;
+    const timer = setInterval(() => {
+      setCurrentStepIdx((prev) => {
+        if (prev >= steps.length - 1) {
+          setIsPlaying(false);
+          return prev;
         }
-      }, 400);
-      return;
-    }
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        setIsTracing(false);
-        setActiveLeg(null);
-        setTraceStep(0);
-      },
-    });
-
-    timelineRef.current = tl;
-
-    traceSequence.forEach((layerIdx, stepIdx) => {
-      tl.call(() => {
-        setActiveLeg(layerIdx);
-        setSelectedIdx(layerIdx);
-        setTraceStep(stepIdx);
+        return prev + 1;
       });
+    }, 850);
 
-      // Target Y in SVG for layer: 4 + layerIdx * 42 + 21
-      const targetY = 16 + layerIdx * 42;
-      tl.to(
-        markerRef.current,
-        {
-          attr: { cy: targetY },
-          duration: 0.22,
-          ease: "power2.inOut",
-        },
-        "+=0.08"
-      );
-    });
+    return () => clearInterval(timer);
+  }, [isPlaying, prefersReducedMotion, steps.length]);
+
+  const handleScenarioChange = (idx: number) => {
+    setSelectedScenarioIdx(idx);
+    setCurrentStepIdx(0);
+    setIsPlaying(false);
+    setIsManualInspection(false);
   };
 
-  const pauseTrace = () => {
-    if (!timelineRef.current) return;
-    if (tracePaused) {
-      timelineRef.current.play();
-      setTracePaused(false);
+  const handlePlayToggle = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
     } else {
-      timelineRef.current.pause();
-      setTracePaused(true);
+      setIsManualInspection(false);
+      if (currentStepIdx >= steps.length - 1) {
+        setCurrentStepIdx(0);
+      }
+      setIsPlaying(true);
     }
   };
 
-  const stepForward = () => {
-    const nextStep = (traceStep + 1) % traceSequence.length;
-    setTraceStep(nextStep);
-    const layerIdx = traceSequence[nextStep];
-    setActiveLeg(layerIdx);
-    setSelectedIdx(layerIdx);
-    if (markerRef.current) {
-      markerRef.current.setAttribute("cy", String(16 + layerIdx * 42));
-    }
+  const handleStepForward = () => {
+    setIsPlaying(false);
+    setIsManualInspection(false);
+    setCurrentStepIdx((prev) => (prev + 1) % steps.length);
   };
 
-  const current = layerDetails[selectedIdx];
-  const h = 42;
+  const handleReset = () => {
+    setIsPlaying(false);
+    setCurrentStepIdx(0);
+    setIsManualInspection(false);
+  };
+
+  const handleLayerClick = (idx: number) => {
+    setIsPlaying(false);
+    setSelectedLayerIdx(idx);
+    setIsManualInspection(true);
+  };
+
+  const rowHeight = 44;
 
   return (
-    <div className="border border-line bg-surface p-4 sm:p-6 lg:p-8">
-      {/* Top control bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+    <div className="border border-[#26262b] bg-[#161619] p-4 sm:p-6 lg:p-8 rounded-xs text-[#f1efe8]">
+      {/* Top Control Strip */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#26262b] pb-6">
         <div>
-          <span className="label">Interactive System Model</span>
-          <p className="text-sm text-[var(--text-2)] mt-1">
-            Select any tier to inspect guarantees, interfaces and failure modes.
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs uppercase tracking-wider text-[#60a5fa] font-semibold">
+              Interactive System Model
+            </span>
+            <span className="font-mono text-[10px] text-[#a09fa6] border border-[#2e2e36] px-1.5 py-0.5 rounded-xs">
+              LIVE SIMULATION
+            </span>
+          </div>
+          <p className="text-sm text-[#a09fa6] mt-1">
+            Typically deployed across 8 integrated architectural tiers.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {!isTracing ? (
+
+        {/* Scenario Toggle Buttons */}
+        <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Request trace scenarios">
+          <span className="font-mono text-xs text-[#a09fa6] mr-1 hidden sm:inline">Scenario:</span>
+          {SCENARIOS.map((sc, i) => (
             <button
+              key={sc.id}
               type="button"
-              onClick={runTrace}
-              className="btn btn-secondary text-xs py-2 px-4"
-              style={{ minHeight: 40 }}
+              role="tab"
+              aria-selected={i === selectedScenarioIdx}
+              onClick={() => handleScenarioChange(i)}
+              className="font-mono text-xs px-3.5 py-2 rounded-xs border transition-all cursor-pointer flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+              style={{
+                borderColor: i === selectedScenarioIdx ? "#3b82f6" : "#2e2e36",
+                backgroundColor: i === selectedScenarioIdx ? "rgba(37,99,235,0.2)" : "#1c1c22",
+                color: i === selectedScenarioIdx ? "#93c5fd" : "#a09fa6",
+                minHeight: 40,
+              }}
             >
-              ▶ Trace a request
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={pauseTrace}
-                className="btn btn-secondary text-xs py-2 px-3"
-                style={{ minHeight: 40 }}
-              >
-                {tracePaused ? "Resume" : "Pause"}
-              </button>
-              <button
-                type="button"
-                onClick={stepForward}
-                className="btn btn-secondary text-xs py-2 px-3"
-                style={{ minHeight: 40 }}
-              >
-                Step →
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  timelineRef.current?.kill();
-                  setIsTracing(false);
-                  setActiveLeg(null);
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  backgroundColor: i === selectedScenarioIdx ? "#60a5fa" : "#a09fa6",
                 }}
-                className="label text-xs px-2"
-                style={{ minHeight: 40, background: "none", border: 0, cursor: "pointer" }}
-              >
-                Reset
-              </button>
-            </div>
-          )}
+              />
+              {sc.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main 2-column layout */}
-      <div className="mt-6 grid gap-8 lg:grid-cols-12 items-start">
-        {/* Left: SVG Diagram (8 stacked tiers + active tracer) */}
-        <div className="lg:col-span-7">
-          <svg
-            viewBox={`0 0 460 ${layerDetails.length * h + 8}`}
-            role="img"
-            aria-label="Interactive architecture diagram showing eight stacked tiers of software infrastructure."
-            className="w-full h-auto select-none"
-            style={{ color: "var(--accent)" }}
+      {/* Playback Controls & Progress Slider */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 py-3 px-4 bg-[#121215] border border-[#26262b] rounded-xs">
+        <div className="flex items-center gap-2">
+          {!prefersReducedMotion && (
+            <button
+              type="button"
+              onClick={handlePlayToggle}
+              className="flex items-center gap-1.5 font-mono text-xs font-semibold px-4 py-2 rounded-xs border border-[#3b82f6] bg-[#2563eb] text-white hover:bg-blue-600 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+              style={{ minHeight: 40 }}
+              aria-label={isPlaying ? "Pause trace animation" : "Play trace animation"}
+            >
+              <span>{isPlaying ? "⏸" : "▶"}</span>
+              <span>{isPlaying ? "Pause" : currentStepIdx > 0 ? "Resume" : "Trace a request"}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleStepForward}
+            className="font-mono text-xs px-3.5 py-2 rounded-xs border border-[#33333b] bg-[#1a1a20] text-[#f1efe8] hover:border-[#444450] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+            style={{ minHeight: 40 }}
+            aria-label="Advance to next step in trace"
           >
-            {/* Background trace line */}
+            Step →
+          </button>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="font-mono text-xs px-3 py-2 text-[#a09fa6] hover:text-[#f1efe8] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+            style={{ minHeight: 40 }}
+            aria-label="Reset trace to first step"
+          >
+            Reset
+          </button>
+        </div>
+
+        {/* Step Scrubber & Counter */}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <span className="font-mono text-xs text-[#a09fa6] whitespace-nowrap">
+            Step {currentStepIdx + 1} of {steps.length}
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={steps.length - 1}
+            value={currentStepIdx}
+            onChange={(e) => {
+              setIsPlaying(false);
+              setIsManualInspection(false);
+              setCurrentStepIdx(Number(e.target.value));
+            }}
+            className="w-28 sm:w-36 h-1.5 bg-[#26262b] rounded-lg appearance-none cursor-pointer accent-[#3b82f6]"
+            aria-label="Scrub through request trace steps"
+          />
+        </div>
+      </div>
+
+      {/* Main 2-Column Architectural Stage */}
+      <div className="mt-6 grid gap-8 lg:grid-cols-12 items-start">
+        {/* Left: Interactive SVG Architectural Stack */}
+        <div className="lg:col-span-7">
+          <div className="flex items-center justify-between mb-3 text-xs font-mono text-[#a09fa6]">
+            <span>SYSTEM ARCHITECTURE (8 TIERS)</span>
+            <span>TAP TIER TO INSPECT</span>
+          </div>
+
+          <svg
+            viewBox={`0 0 460 ${ARCHITECTURE_LAYERS.length * rowHeight + 10}`}
+            role="img"
+            aria-label="Architectural stack showing 8 software tiers. Interactive trace routes through active tiers."
+            className="w-full h-auto select-none"
+          >
+            {/* Architectural Left Rail Guideline */}
             <line
               x1="24"
-              y1="16"
+              y1="18"
               x2="24"
-              y2={layerDetails.length * h - 20}
-              stroke="var(--ht-border)"
+              y2={ARCHITECTURE_LAYERS.length * rowHeight - 20}
+              stroke="#26262b"
               strokeWidth="2"
               strokeDasharray="4 4"
             />
 
-            {layerDetails.map((l, i) => {
-              const isSelected = selectedIdx === i;
-              const isLegActive = activeLeg === i;
-              const y = 4 + i * h;
+            {/* Active Trace Line Segment from Layer 0 to Current */}
+            <line
+              x1="24"
+              y1="18"
+              x2="24"
+              y2={4 + activeLayerIdx * rowHeight + 18}
+              stroke="#3b82f6"
+              strokeWidth="2"
+              className={prefersReducedMotion ? "" : "transition-all duration-300"}
+            />
+
+            {ARCHITECTURE_LAYERS.map((layer, i) => {
+              const isActive = activeLayerIdx === i;
+              const y = 4 + i * rowHeight;
 
               return (
                 <g
-                  key={l.id}
+                  key={layer.id}
                   role="button"
                   tabIndex={0}
-                  aria-pressed={isSelected}
-                  aria-label={`${l.name}: ${l.role}`}
-                  onClick={() => setSelectedIdx(i)}
+                  aria-pressed={isActive}
+                  aria-label={`${layer.num} ${layer.name}: ${layer.role}`}
+                  onClick={() => handleLayerClick(i)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setSelectedIdx(i);
+                      handleLayerClick(i);
                     }
                   }}
                   className="cursor-pointer focus:outline-none"
                   style={{
-                    opacity: isTracing && activeLeg !== null && !isLegActive ? 0.35 : 1,
-                    transition: "opacity 0.22s ease-in-out",
+                    opacity: !isManualInspection && !isActive ? 0.45 : 1,
+                    transition: prefersReducedMotion ? "none" : "opacity 0.25s ease-in-out",
                   }}
                 >
-                  {/* Layer Box */}
+                  {/* Tier Box */}
                   <rect
                     x="48"
                     y={y}
                     width="408"
-                    height={h - 6}
-                    fill={isSelected || isLegActive ? "var(--ht-blue)" : "var(--bg)"}
-                    fillOpacity={isSelected || isLegActive ? 0.12 : 1}
-                    stroke={isSelected || isLegActive ? "var(--ht-blue)" : "var(--ht-border)"}
-                    strokeWidth={isSelected || isLegActive ? "1.75" : "1"}
-                    className="transition-colors duration-200"
+                    height={rowHeight - 6}
+                    fill={isActive ? "rgba(37,99,235,0.2)" : "#1a1a1f"}
+                    stroke={isActive ? "#3b82f6" : "#2a2a32"}
+                    strokeWidth={isActive ? "1.75" : "1"}
+                    rx="2"
+                    className={prefersReducedMotion ? "" : "transition-colors duration-200"}
                   />
 
-                  {/* Connect dot */}
+                  {/* Connection Node */}
                   <circle
                     cx="24"
-                    cy={y + (h - 6) / 2}
-                    r={isSelected || isLegActive ? "4" : "2.5"}
-                    fill={isSelected || isLegActive ? "var(--ht-blue)" : "var(--ht-border-strong)"}
-                    className="transition-all duration-200"
+                    cy={y + (rowHeight - 6) / 2}
+                    r={isActive ? "5" : "2.5"}
+                    fill={isActive ? "#3b82f6" : "#484852"}
+                    stroke={isActive ? "#f1efe8" : "transparent"}
+                    strokeWidth="1.5"
+                    className={prefersReducedMotion ? "" : "transition-all duration-200"}
                   />
 
-                  {/* Connecting arm */}
+                  {/* Horizontal Connection Arm */}
                   <line
                     x1="24"
-                    y1={y + (h - 6) / 2}
+                    y1={y + (rowHeight - 6) / 2}
                     x2="48"
-                    y2={y + (h - 6) / 2}
-                    stroke={isSelected || isLegActive ? "var(--ht-blue)" : "var(--ht-border)"}
+                    y2={y + (rowHeight - 6) / 2}
+                    stroke={isActive ? "#3b82f6" : "#2e2e36"}
                     strokeWidth="1"
                   />
 
-                  {/* Numeral + Layer name */}
+                  {/* Numeral + Layer Name */}
                   <text
                     x="62"
-                    y={y + 23}
-                    fill="var(--text)"
+                    y={y + 24}
+                    fill={isActive ? "#f1efe8" : "#d1d0db"}
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 12,
-                      fontWeight: isSelected ? 600 : 500,
+                      fontWeight: isActive ? 600 : 500,
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
                     }}
                   >
-                    {String(i + 1).padStart(2, "0")} {l.name}
+                    {layer.num} {layer.name}
                   </text>
 
                   {/* Role descriptor badge on desktop */}
                   <text
-                    x="440"
-                    y={y + 23}
+                    x="442"
+                    y={y + 24}
                     textAnchor="end"
-                    fill="var(--text-2)"
+                    fill={isActive ? "#93c5fd" : "#a09fa6"}
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 11,
                       textTransform: "uppercase",
                     }}
                   >
-                    {l.role}
+                    {layer.role}
                   </text>
                 </g>
               );
             })}
 
-            {/* Traveling request tracer marker */}
+            {/* Glowing Traveling Packet Node */}
             <circle
-              ref={markerRef}
               cx="24"
-              cy="20"
-              r="6"
-              fill="var(--ht-blue)"
-              stroke="var(--ht-ivory)"
+              cy={4 + activeLayerIdx * rowHeight + (rowHeight - 6) / 2}
+              r="7"
+              fill="#3b82f6"
+              stroke="#ffffff"
               strokeWidth="2"
+              className={prefersReducedMotion ? "" : "transition-all duration-300"}
               style={{
-                display: isTracing ? "block" : "none",
-                filter: "drop-shadow(0 0 4px rgba(52, 76, 104, 0.5))",
+                filter: "drop-shadow(0 0 6px rgba(59,130,246,0.85))",
               }}
             />
           </svg>
         </div>
 
-        {/* Right: Detailed Inspection Panel */}
+        {/* Right: Live Trace Step & Inspection Panel */}
         <div
-          className="lg:col-span-5 border border-line bg-[var(--bg)] p-5 transition-opacity duration-220"
+          className="lg:col-span-5 border border-[#26262b] bg-[#141417] p-5 sm:p-6 rounded-xs"
           role="region"
           aria-live="polite"
-          aria-label={`Detailed specification for ${current.name}`}
+          aria-label={
+            isManualInspection
+              ? `Specification for ${activeLayer.name}`
+              : `Trace Step ${currentStepIdx + 1}: ${currentStep.stepTitle}`
+          }
         >
-          <div className="flex items-baseline justify-between border-b border-line pb-3">
-            <span className="label text-xs">
-              Tier 0{selectedIdx + 1} · {current.role}
+          {/* Header Strip */}
+          <div className="flex items-center justify-between border-b border-[#26262b] pb-3">
+            <span className="font-mono text-xs uppercase tracking-wider text-[#60a5fa] font-semibold">
+              {isManualInspection ? "Tier Specification" : `Step 0${currentStepIdx + 1} / 0${steps.length}`}
             </span>
-            <span
-              className="label text-[10px] px-1.5 py-0.5 border"
-              style={{
-                borderColor: "var(--ht-border-strong)",
-                color: "var(--accent)",
-              }}
-            >
-              Active Inspection
+            <span className="font-mono text-[10px] text-[#a09fa6] border border-[#2c2c32] px-2 py-0.5 rounded-xs uppercase">
+              {isManualInspection ? "Manual Inspection" : scenario.name}
             </span>
           </div>
 
-          <h3
-            className="mt-3"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "var(--step-2)",
-              fontWeight: 500,
-            }}
-          >
-            {current.name}
-          </h3>
-
-          <div className="mt-4">
-            <p className="label text-[11px]">Primary Responsibilities</p>
-            <ul className="mt-2 space-y-1.5 text-sm" style={{ paddingLeft: "1.1em" }}>
-              {current.responsibilities.map((r) => (
-                <li key={r} style={{ color: "var(--text)" }}>
-                  {r}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-5 border-t border-line pt-3">
-            <p className="label text-[11px]">Reference Implementation Stack</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {current.technologies.map((t) => (
-                <span
-                  key={t}
-                  className="label text-[10px] border border-line px-2 py-0.5 bg-surface"
-                  style={{ color: "var(--text)" }}
-                >
-                  {t}
+          {!isManualInspection ? (
+            /* ACTIVE TRACE STEP VIEW */
+            <div>
+              <div className="mt-4">
+                <span className="font-mono text-xs text-[#a09fa6] uppercase">
+                  Location: Tier {activeLayer.num} · {activeLayer.name}
                 </span>
-              ))}
-            </div>
-          </div>
+                <h3
+                  className="mt-1 text-xl sm:text-2xl text-[#f1efe8]"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {currentStep.stepTitle}
+                </h3>
+              </div>
 
-          <div className="mt-5 border-t border-line pt-3">
-            <p className="label text-[11px]" style={{ color: "var(--accent)" }}>
-              Guarded Failure Mode
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-2)]">{current.failureModes}</p>
-          </div>
+              {/* Action Description */}
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#a09fa6] uppercase">Execution Details</p>
+                <p className="mt-1.5 text-sm text-[#d1d0db] leading-relaxed">
+                  {currentStep.action}
+                </p>
+              </div>
+
+              {/* Business Impact Note */}
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#60a5fa] uppercase font-semibold">Business Guarantee</p>
+                <p className="mt-1.5 text-sm text-[#d1d0db] leading-relaxed">
+                  {currentStep.businessImpact}
+                </p>
+              </div>
+
+              {/* Wire Protocol / Packet Annotation */}
+              <div className="mt-4 bg-[#1a1a20] border border-[#2a2a32] p-2.5 rounded-xs">
+                <span className="font-mono text-[10px] text-[#a09fa6] uppercase block">
+                  Wire Annotation
+                </span>
+                <code className="font-mono text-xs text-[#93c5fd] mt-1 block break-all">
+                  {currentStep.annotation}
+                </code>
+              </div>
+            </div>
+          ) : (
+            /* MANUAL TIER DEEP DIVE */
+            <div>
+              <div className="mt-4">
+                <span className="font-mono text-xs text-[#a09fa6] uppercase">
+                  Tier {activeLayer.num} · {activeLayer.role}
+                </span>
+                <h3
+                  className="mt-1 text-xl sm:text-2xl text-[#f1efe8]"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {activeLayer.name}
+                </h3>
+              </div>
+
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#60a5fa] uppercase font-semibold">Architectural Guarantee</p>
+                <p className="mt-1.5 text-sm text-[#d1d0db] leading-relaxed font-medium">
+                  {activeLayer.guarantee}
+                </p>
+              </div>
+
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#a09fa6] uppercase">Core Responsibilities</p>
+                <ul className="mt-2 space-y-1.5 text-sm text-[#d1d0db] pl-4 list-disc">
+                  {activeLayer.responsibilities.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#a09fa6] uppercase">Verified Technology Stack</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {activeLayer.technologies.map((t) => (
+                    <span
+                      key={t}
+                      className="font-mono text-[11px] bg-[#1d1d24] border border-[#2c2c34] text-[#d1d0db] px-2 py-0.5 rounded-xs"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 border-t border-[#26262b] pt-3">
+                <p className="font-mono text-[11px] text-[#f87171] uppercase font-semibold">Guarded Failure Mode</p>
+                <p className="mt-1 text-xs text-[#d1d0db] leading-relaxed">
+                  {activeLayer.failureModes}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Mandatory Caption per doc 05 §04 & doc 10 §10.5 */}
-      <p className="label mt-6 text-xs text-[var(--text-2)]">{layersCaption}</p>
+      {/* Mandatory Caption per doc 05 §04 */}
+      <p className="font-mono mt-6 text-xs text-[#a09fa6]">{layersCaption}</p>
     </div>
   );
 }
-
