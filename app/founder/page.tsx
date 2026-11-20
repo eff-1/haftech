@@ -58,7 +58,7 @@ export default function FounderPage() {
         <div className="lg:col-span-5">
           <ImageMask aspectRatio="4 / 5" className="border border-line bg-surface relative overflow-hidden shadow-xl rounded-sm">
             <Image
-              src="/images/founder-portrait.jpg"
+              src="/media/founder-portrait.jpg"
               alt="Faruq Ariyo — Founder & Systems Engineer at HafTech"
               fill
               priority
