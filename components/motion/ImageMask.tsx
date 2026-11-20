@@ -1,12 +1,7 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { dur, ease } from "./tokens";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import React, { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "./useReducedMotion";
 
 interface ImageMaskProps {
   children: React.ReactNode;
@@ -19,100 +14,60 @@ export function ImageMask({
   aspectRatio = "16 / 9",
   className = "",
 }: ImageMaskProps) {
+  const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const innerRef = useRef<HTMLDivElement | null>(null);
+  // Start visible on SSR/initial paint to avoid blocking or hiding content if JS fails;
+  // subtle scale-settle animates when entering viewport on client.
+  const [revealed, setRevealed] = useState(true);
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setRevealed(true);
+      return;
+    }
+
     const el = containerRef.current;
-    const inner = innerRef.current;
-    if (!el || !inner) return;
+    if (!el || typeof IntersectionObserver === "undefined") return;
 
-    const mm = gsap.matchMedia();
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.9) {
+      setRevealed(true);
+      return;
+    }
 
-    mm.add(
-      {
-        reduce: "(prefers-reduced-motion: reduce)",
-        standard: "(prefers-reduced-motion: no-preference)",
-        desktop: "(min-width: 1024px)",
+    setRevealed(false);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
       },
-      (context) => {
-        const { reduce, desktop } = context.conditions as {
-          reduce: boolean;
-          standard: boolean;
-          desktop: boolean;
-        };
-
-        if (reduce) {
-          gsap.set(el, { clipPath: "inset(0% 0% 0% 0%)" });
-          gsap.set(inner, { scale: 1 });
-          return;
-        }
-
-        const isMobile = window.innerWidth < 768;
-        const clipDur = isMobile ? 0.65 : dur.image;
-        const imgDur = isMobile ? 0.9 : 1.1;
-
-        gsap.set(el, { clipPath: "inset(100% 0% 0% 0%)" });
-        gsap.set(inner, { scale: 1.12 });
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: el,
-            start: "top 80%",
-            once: true,
-          },
-        });
-
-        tl.to(el, {
-          clipPath: "inset(0% 0% 0% 0%)",
-          duration: clipDur,
-          ease: ease.out,
-        }).to(
-          inner,
-          {
-            scale: 1,
-            duration: imgDur,
-            ease: ease.out,
-          },
-          0
-        );
-
-        if (desktop) {
-          const onMouseEnter = () => {
-            gsap.to(inner, { scale: 1.03, duration: 0.5, ease: "power2.out" });
-          };
-          const onMouseLeave = () => {
-            gsap.to(inner, { scale: 1, duration: 0.5, ease: "power2.out" });
-          };
-
-          el.addEventListener("mouseenter", onMouseEnter);
-          el.addEventListener("mouseleave", onMouseLeave);
-
-          return () => {
-            el.removeEventListener("mouseenter", onMouseEnter);
-            el.removeEventListener("mouseleave", onMouseLeave);
-          };
-        }
-      }
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.05 }
     );
 
-    return () => mm.revert();
-  }, []);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [prefersReducedMotion]);
 
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
+      className={`group relative overflow-hidden ${className}`}
       style={{
         aspectRatio,
-        willChange: "clip-path",
+        clipPath: revealed || prefersReducedMotion ? "inset(0% 0% 0% 0%)" : "inset(14% 0% 0% 0%)",
+        opacity: revealed || prefersReducedMotion ? 1 : 0.85,
+        transition: prefersReducedMotion
+          ? "none"
+          : "clip-path 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease",
       }}
     >
       <div
-        ref={innerRef}
-        className="w-full h-full"
+        className="w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         style={{
-          willChange: "transform",
+          transform: revealed || prefersReducedMotion ? undefined : "scale(1.06)",
         }}
       >
         {children}
@@ -120,4 +75,3 @@ export function ImageMask({
     </div>
   );
 }
-
