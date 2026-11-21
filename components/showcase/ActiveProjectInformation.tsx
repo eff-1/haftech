@@ -15,109 +15,77 @@ export function ActiveProjectInformation({ project }: ActiveProjectInformationPr
 
   const transition = prefersReducedMotion
     ? { duration: 0 }
-    : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const };
+    : { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
     <div
-      className="relative z-10 w-full max-w-4xl mx-auto mt-4 sm:mt-6"
+      className="relative z-10 w-full max-w-3xl mx-auto text-center px-4"
       role="region"
       aria-live="polite"
-      aria-label={`Active project details: ${project.name}`}
+      aria-label={`Active project: ${project.name}`}
     >
+      {/* Minimal Scroll / Drag cue directly beneath the curved cylinder */}
+      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#9a9c98] mb-4 sm:mb-6">
+        <span className="hidden lg:inline">Scroll</span>
+        <span className="lg:hidden">Drag or Tap</span>
+      </p>
+
       <AnimatePresence mode="wait">
         <motion.div
           key={project.id}
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
           transition={transition}
-          className="grid gap-6 md:grid-cols-12 items-end border-t border-[#26262b] pt-6"
+          className="flex flex-col items-center"
         >
-          {/* Left: Number, Title, Headline, Categories */}
-          <div className="md:col-span-7">
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                className="font-mono text-xs font-semibold uppercase tracking-widest"
-                style={{ color: project.accent }}
-              >
-                {project.num} / {project.name}
-              </span>
-              <span className="h-3 w-px bg-[#333338]" aria-hidden="true" />
-              <span className="font-mono text-[11px] uppercase tracking-wider text-[#a09fa6]">
-                {project.categories.join(" / ")}
-              </span>
-            </div>
+          {/* Oversized Centered Editorial Serif Title (Boska) */}
+          <h3
+            className="text-[#f1efe8]"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(2.5rem, 6.2vw, 4.75rem)",
+              fontWeight: 400,
+              lineHeight: 1.0,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {project.name}
+          </h3>
 
-            <h3
-              className="mt-2.5 text-2xl sm:text-3xl lg:text-4xl text-[#f1efe8]"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                lineHeight: 1.08,
-                letterSpacing: "-0.02em",
-              }}
+          {/* Clean centered subtitle */}
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg text-[#b3b5b0] max-w-xl leading-relaxed font-light">
+            {project.description}
+          </p>
+
+          {/* Subtle metadata & understated CTA row */}
+          <div className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-[#9a9c98]">
+              {project.num} / {project.year} · {project.categories[0]}
+            </span>
+
+            <Link
+              href={project.href}
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider border-b border-[#f1efe8]/40 pb-0.5 hover:border-[#f1efe8] transition-colors focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+              style={{ color: "#f1efe8", minHeight: 36 }}
             >
-              {project.headline}
-            </h3>
+              <span>Explore Project</span>
+              <span aria-hidden="true">↗</span>
+            </Link>
 
-            <p className="mt-3 text-sm sm:text-base text-[#b8b7c2] max-w-xl leading-relaxed font-light">
-              {project.description}
-            </p>
-          </div>
-
-          {/* Right: Metadata, Tech Stack, CTAs */}
-          <div className="md:col-span-5 flex flex-col items-start md:items-end justify-between gap-4">
-            <div className="md:text-right">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-[#a09fa6]">
-                {project.year} · {project.meta}
-              </p>
-              <div className="mt-2 flex flex-wrap md:justify-end gap-1.5">
-                {project.technologies.slice(0, 4).map((tech) => (
-                  <span
-                    key={tech}
-                    className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-xs border border-[#2c2c34] bg-[#18181e] text-[#d1d0db]"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <motion.div
-                whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+            {project.liveUrl && (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider border-b border-transparent hover:border-[#93c5fd] pb-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+                style={{ color: "#93c5fd", minHeight: 36 }}
               >
-                <Link
-                  href={project.href}
-                  prefetch={false}
-                  className="inline-flex items-center justify-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider px-5 py-3 rounded-xs transition-colors focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
-                  style={{
-                    backgroundColor: "#f1efe8",
-                    color: "#121214",
-                    minHeight: 44,
-                  }}
-                >
-                  <span>Explore Project</span>
-                  <span aria-hidden="true">↗</span>
-                </Link>
-              </motion.div>
-
-              {project.liveUrl && (
-                <motion.a
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  className="inline-flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider px-4 py-3 rounded-xs border border-[#363640] bg-[#18181e] hover:border-[#60a5fa] transition-colors focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
-                  style={{ color: "#f1efe8", minHeight: 44 }}
-                >
-                  <span>Live</span>
-                  <span aria-hidden="true">↗</span>
-                </motion.a>
-              )}
-            </div>
+                <span>Live Site</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            )}
           </div>
         </motion.div>
       </AnimatePresence>

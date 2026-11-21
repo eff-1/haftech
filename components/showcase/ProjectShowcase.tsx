@@ -1,106 +1,48 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { SHOWCASE_PROJECTS } from "./showcaseData";
-import { ShowcaseAtmosphere } from "./ShowcaseAtmosphere";
 import { ShowcaseIntro } from "./ShowcaseIntro";
-import { OrbitProjectCard } from "./OrbitProjectCard";
+import { CurvedCylinderStage } from "./CurvedCylinderStage";
 import { ActiveProjectInformation } from "./ActiveProjectInformation";
-import { ProjectNavigation } from "./ProjectNavigation";
 
 export function ProjectShowcase() {
   const prefersReducedMotion = useReducedMotion();
   const projects = SHOWCASE_PROJECTS;
   const total = projects.length;
+  const angleStep = (Math.PI * 2) / total;
+  const maxAngle = (total - 1) * angleStep;
 
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
 
   const pinStageRef = useRef<HTMLDivElement | null>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const angleRef = useRef(0);
   const progressFillRef = useRef<HTMLDivElement | null>(null);
-  const scrollProgressRef = useRef(0);
   const stRef = useRef<{ start: number; end: number } | null>(null);
-  const mobileTweenRafRef = useRef<number>(0);
-  const touchStartXRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
 
-  // Core 3D Circular Orbit positioning math (direct DOM mutation = 0 React re-renders per frame)
-  const applyOrbitLayout = useCallback(
-    (progress: number) => {
-      const clamped = Math.max(0, Math.min(1, progress));
-      scrollProgressRef.current = clamped;
+  const syncFromAngle = useCallback(
+    (nextAngle: number) => {
+      const clamped = Math.max(0, Math.min(maxAngle, nextAngle));
+      angleRef.current = clamped;
 
-      const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
-      const isDesktop = vw >= 1024;
-      const radius = isDesktop
-        ? Math.min(580, Math.max(400, vw * 0.37))
-        : Math.min(250, Math.max(170, vw * 0.52));
-      const perspectivePx = isDesktop ? 1350 : 960;
-
-      const angleStep = (Math.PI * 2) / total;
-      const orbitAngle = clamped * (total - 1) * angleStep;
-
-      for (let i = 0; i < total; i++) {
-        const el = cardRefs.current[i];
-        if (!el) continue;
-
-        const theta = i * angleStep - orbitAngle;
-        const cosT = Math.cos(theta);
-        const sinT = Math.sin(theta);
-
-        // Circular coordinates on horizontal 3D orbit: front card at z=0, x=0; neighbours curve backward
-        const x = sinT * radius;
-        const z = (cosT - 1) * radius * 0.85;
-        // Smooth orbital rotation along the arc (never exceeds 90deg so no mirrored backface text)
-        const rotY = -sinT * (isDesktop ? 34 : 26);
-
-        // Depth prominence in [0, 1]
-        const depth = (cosT + 1) * 0.5;
-        const scale = isDesktop ? 0.66 + 0.34 * depth : 0.72 + 0.28 * depth;
-        const opacity = 0.18 + 0.82 * Math.pow(depth, 1.4);
-
-        el.style.transform = `perspective(${perspectivePx}px) translate3d(${x.toFixed(1)}px, 0px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-        el.style.opacity = opacity.toFixed(3);
-        el.style.zIndex = String(Math.round(depth * 100));
-        el.style.pointerEvents = depth > 0.55 ? "auto" : "none";
-
-        // Subtle blur only on desktop receding cards, never on mobile or active card
-        if (isDesktop && !prefersReducedMotion && depth < 0.86) {
-          const blurPx = (1 - depth) * 2.0;
-          el.style.filter = `blur(${blurPx.toFixed(2)}px)`;
-        } else {
-          el.style.filter = "none";
-        }
-      }
-
+      const progress = maxAngle > 0 ? clamped / maxAngle : 0;
       if (progressFillRef.current) {
-        const visualFill = Math.max(0.06, clamped);
-        progressFillRef.current.style.transform = `scaleX(${visualFill.toFixed(4)})`;
+        progressFillRef.current.style.transform = `scaleX(${Math.max(0.04, progress).toFixed(4)})`;
       }
 
-      const nextIdx = Math.round(clamped * (total - 1));
+      const nextIdx = Math.round(progress * (total - 1));
       if (nextIdx !== activeIndexRef.current) {
         activeIndexRef.current = nextIdx;
         setActiveIndex(nextIdx);
       }
     },
-    [total, prefersReducedMotion]
+    [maxAngle, total]
   );
 
-  // Initial layout + resize handler
-  useEffect(() => {
-    applyOrbitLayout(scrollProgressRef.current);
-
-    const onResize = () => {
-      applyOrbitLayout(scrollProgressRef.current);
-    };
-    window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
-  }, [applyOrbitLayout]);
-
-  // Desktop GSAP + ScrollTrigger pinned orbital scroll choreography
+  // Desktop GSAP + ScrollTrigger pinned vertical-to-rotational cylinder scrub
   useEffect(() => {
     if (prefersReducedMotion) return;
     if (typeof window === "undefined") return;
@@ -122,17 +64,17 @@ export function ProjectShowcase() {
         const st = ScrollTrigger.create({
           trigger: pinEl,
           start: "top top",
-          end: () => `+=${Math.round(window.innerHeight * (total - 1) * 0.65)}`,
+          end: () => `+=${Math.round(window.innerHeight * (total - 1) * 0.62)}`,
           pin: true,
-          scrub: 0.75,
+          scrub: 0.65,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            applyOrbitLayout(self.progress);
+            syncFromAngle(self.progress * maxAngle);
           },
           onRefresh: (self) => {
             stRef.current = { start: self.start, end: self.end };
-            applyOrbitLayout(self.progress);
+            syncFromAngle(self.progress * maxAngle);
           },
         });
 
@@ -146,66 +88,23 @@ export function ProjectShowcase() {
       stRef.current = null;
       if (stInstance) stInstance.kill();
     };
-  }, [prefersReducedMotion, total, applyOrbitLayout]);
+  }, [prefersReducedMotion, total, maxAngle, syncFromAngle]);
 
-  // Animate progress smoothly on mobile/touch or reduced-motion jump
-  const animateToProgress = useCallback(
-    (targetProgress: number) => {
-      if (mobileTweenRafRef.current) {
-        window.cancelAnimationFrame(mobileTweenRafRef.current);
-      }
-
-      if (prefersReducedMotion) {
-        applyOrbitLayout(targetProgress);
-        return;
-      }
-
-      const startProgress = scrollProgressRef.current;
-      const delta = targetProgress - startProgress;
-      const duration = 560;
-      const startTime = performance.now();
-
-      const step = (now: number) => {
-        const t = Math.min(1, (now - startTime) / duration);
-        // Cubic ease-out
-        const eased = 1 - Math.pow(1 - t, 3);
-        applyOrbitLayout(startProgress + delta * eased);
-        if (t < 1) {
-          mobileTweenRafRef.current = window.requestAnimationFrame(step);
-        } else {
-          mobileTweenRafRef.current = 0;
-        }
-      };
-
-      mobileTweenRafRef.current = window.requestAnimationFrame(step);
-    },
-    [applyOrbitLayout, prefersReducedMotion]
-  );
-
-  // Cleanup mobile RAF tween on unmount
-  useEffect(() => {
-    return () => {
-      if (mobileTweenRafRef.current) {
-        window.cancelAnimationFrame(mobileTweenRafRef.current);
-      }
-    };
-  }, []);
-
-  // Authoritative navigation: synchronizes with desktop ScrollTrigger OR mobile tween
+  // Authoritative navigation: syncs with desktop ScrollTrigger OR smoothly targets cylinder angle on mobile
   const navigateToIndex = useCallback(
     (targetIdx: number) => {
-      const clampedIdx = Math.max(0, Math.min(total - 1, targetIdx));
-      const targetProgress = total > 1 ? clampedIdx / (total - 1) : 0;
+      const wrappedIdx = ((targetIdx % total) + total) % total;
+      const targetProgress = total > 1 ? wrappedIdx / (total - 1) : 0;
 
       if (stRef.current && window.innerWidth >= 1024 && !prefersReducedMotion) {
         const targetY =
           stRef.current.start + targetProgress * (stRef.current.end - stRef.current.start);
         window.scrollTo({ top: targetY, behavior: "smooth" });
       } else {
-        animateToProgress(targetProgress);
+        syncFromAngle(wrappedIdx * angleStep);
       }
     },
-    [total, prefersReducedMotion, animateToProgress]
+    [total, angleStep, prefersReducedMotion, syncFromAngle]
   );
 
   const handlePrev = useCallback(() => {
@@ -216,7 +115,29 @@ export function ProjectShowcase() {
     navigateToIndex(activeIndexRef.current + 1);
   }, [navigateToIndex]);
 
-  // Keyboard navigation
+  // Continuous pointer/touch drag on the 3D cylinder
+  const handleDragDelta = useCallback(
+    (deltaRad: number) => {
+      if (stRef.current && window.innerWidth >= 1024 && !prefersReducedMotion) {
+        const scrollSpan = stRef.current.end - stRef.current.start;
+        const deltaY = (deltaRad / maxAngle) * scrollSpan;
+        window.scrollBy({ top: deltaY, behavior: "instant" as ScrollBehavior });
+      } else {
+        syncFromAngle(angleRef.current + deltaRad);
+      }
+    },
+    [maxAngle, prefersReducedMotion, syncFromAngle]
+  );
+
+  // Snap gently to nearest curved panel on drag release (mobile/touch)
+  const handleDragEnd = useCallback(() => {
+    if (window.innerWidth < 1024 || prefersReducedMotion) {
+      const nearest = Math.round(angleRef.current / angleStep);
+      syncFromAngle(nearest * angleStep);
+    }
+  }, [angleStep, prefersReducedMotion, syncFromAngle]);
+
+  // Keyboard accessibility
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
@@ -227,86 +148,96 @@ export function ProjectShowcase() {
     }
   };
 
-  // Natural mobile touch swipe (ignores vertical page scrolls)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
-    touchStartYRef.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-    const dx = touchStartXRef.current - e.changedTouches[0].clientX;
-    const dy = touchStartYRef.current - e.changedTouches[0].clientY;
-    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-      if (dx > 0) handleNext();
-      else handlePrev();
-    }
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
-  };
-
   const activeProject = projects[activeIndex] || projects[0];
 
   return (
     <section
       id="selected-work"
       aria-labelledby="showcase-h2"
-      aria-roledescription="3D orbital project showcase"
+      aria-roledescription="3D curved cylindrical project showcase"
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      className="relative bg-[#0f0f12] text-[#f1efe8] border-b border-[#26262b] focus:outline-none"
+      className="relative bg-[#151715] text-[#f1efe8] border-b border-[#252825] focus:outline-none"
     >
       {/* 03 Section Introduction */}
       <ShowcaseIntro totalProjects={total} />
 
-      {/* Pinned 3D Circular Orbit Stage */}
+      {/* Pinned 3D Curved Cylinder Showcase Stage */}
       <div
         ref={pinStageRef}
-        className="relative w-full min-h-[min(100svh,880px)] lg:min-h-[100vh] flex flex-col justify-center overflow-hidden py-8 sm:py-10"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        className="relative w-full min-h-[min(100svh,860px)] lg:min-h-[100vh] flex flex-col justify-between overflow-hidden pt-4 pb-8 sm:pt-8 sm:pb-10"
       >
-        {/* Restrained Three.js / WebGL & CSS Radial Atmosphere */}
-        <ShowcaseAtmosphere
-          scrollProgressRef={scrollProgressRef}
-          activeAccent={activeProject.accent}
+        {/* Subtle studio radial backdrop glow */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+          style={{
+            background:
+              "radial-gradient(ellipse 65% 48% at 50% 38%, rgba(255,255,255,0.045) 0%, rgba(21,23,21,0) 70%)",
+          }}
         />
 
-        <div className="wrap relative z-10 w-full flex flex-col items-center">
-          {/* 3D Perspective Orbit Viewport */}
-          <div
-            className="relative w-full overflow-visible"
-            style={{
-              height: "clamp(230px, 44vw, 430px)",
-            }}
-          >
-            <div className="relative w-full h-full">
-              {projects.map((project, index) => (
-                <OrbitProjectCard
-                  key={project.id}
-                  ref={(el) => {
-                    cardRefs.current[index] = el;
-                  }}
-                  project={project}
-                  index={index}
-                  isActive={index === activeIndex}
-                  onSelect={navigateToIndex}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Curved Three.js WebGL Cylinder + Edge Circular Arrows */}
+        <div className="relative w-full flex items-center justify-center flex-1">
+          <CurvedCylinderStage
+            projects={projects}
+            angleRef={angleRef}
+            activeIndex={activeIndex}
+            onSelectIndex={navigateToIndex}
+            onDragDelta={handleDragDelta}
+            onDragEnd={handleDragEnd}
+          />
 
-          {/* Synchronized Framer Motion Editorial Project Info Panel */}
+          {/* Left Edge Circular Chevron Button */}
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Previous project"
+            className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-[#0e100e]/80 border border-white/15 text-[#f1efe8] hover:border-white/45 hover:bg-[#1a1d1a] transition-colors cursor-pointer backdrop-blur-xs focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+            style={{ borderRadius: "9999px" }}
+          >
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+          </button>
+
+          {/* Right Edge Circular Chevron Button */}
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Next project"
+            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-[#0e100e]/80 border border-white/15 text-[#f1efe8] hover:border-white/45 hover:bg-[#1a1d1a] transition-colors cursor-pointer backdrop-blur-xs focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+            style={{ borderRadius: "9999px" }}
+          >
+            <ChevronRight className="w-5 h-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        {/* Centered Editorial Info + Subtle Right-Aligned Next Cue */}
+        <div className="relative z-10 w-full pb-4">
           <ActiveProjectInformation project={activeProject} />
 
-          {/* Custom Synchronized Navigation & Scroll Progress */}
-          <ProjectNavigation
-            projects={projects}
-            activeIndex={activeIndex}
-            progressFillRef={progressFillRef}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onSelect={navigateToIndex}
+          {/* Subtle right-aligned Next trigger (desktop, matching reference) */}
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Next"
+            className="hidden lg:inline-flex items-center font-mono text-xs tracking-wider text-[#9a9c98] hover:text-[#f1efe8] transition-colors cursor-pointer absolute right-8 top-1/2 -translate-y-1/2 px-2 py-2 focus-visible:outline-2 focus-visible:outline-[#60a5fa]"
+            style={{ minHeight: 44 }}
+          >
+            Next
+          </button>
+        </div>
+
+        {/* Full-Width Minimal Bottom Progress Bar */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10 overflow-hidden"
+          aria-hidden="true"
+        >
+          <div
+            ref={progressFillRef}
+            className="h-full w-full origin-left bg-[#e6e7e4]"
+            style={{
+              transform: `scaleX(${Math.max(0.04, total > 1 ? activeIndex / (total - 1) : 1)})`,
+            }}
           />
         </div>
       </div>
