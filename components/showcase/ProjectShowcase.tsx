@@ -157,7 +157,7 @@ export function ProjectShowcase() {
       aria-roledescription="3D curved cylindrical project showcase"
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      className="relative bg-[#151715] text-[#f1efe8] border-b border-[#252825] focus:outline-none"
+      className="relative bg-[#151715] text-[#f1efe8] border-b border-[#252825] overflow-x-clip focus:outline-none"
     >
       {/* 03 Section Introduction */}
       <ShowcaseIntro totalProjects={total} />

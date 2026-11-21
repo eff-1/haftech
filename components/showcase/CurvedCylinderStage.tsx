@@ -348,9 +348,10 @@ export function CurvedCylinderStage({
   return (
     <div
       ref={hostRef}
-      className="relative w-full h-[clamp(290px,48vh,490px)] sm:h-[clamp(360px,54vh,540px)] cursor-grab active:cursor-grabbing select-none"
+      className="relative w-full max-w-full overflow-hidden h-[clamp(290px,48vh,490px)] sm:h-[clamp(360px,54vh,540px)] cursor-grab active:cursor-grabbing select-none"
       role="img"
       aria-label={`3D curved cylindrical showcase displaying ${activeProject.name}: ${activeProject.headline}`}
     />
   );
 }
+
