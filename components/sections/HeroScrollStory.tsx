@@ -189,11 +189,12 @@ function MobileStoryBlock({
 function MobileStickyHero() {
   const runwayRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const textLayerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
   const stepIdxRef = useRef(0);
   const [failed, setFailed] = useState<Record<number, boolean>>({});
 
-  // Native scroll-linked step tracker (pure CSS sticky — zero JS scroll-jacking)
+  // Native scroll-linked step & subtle continuous kinetic text drift (0 re-renders per scroll frame)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(min-width: 1024px)").matches) return;
@@ -206,10 +207,21 @@ function MobileStickyHero() {
       const rect = runway.getBoundingClientRect();
       const scrollable = Math.max(1, rect.height - window.innerHeight);
       const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
+
+      const segmentSize = 1 / HERO_STEPS.length;
       const next = Math.min(
         HERO_STEPS.length - 1,
         Math.floor(progress * (HERO_STEPS.length - 0.01))
       );
+
+      // Continuous micro-parallax drift within each step's scroll slice so text moves WITH the video
+      const localP = Math.max(0, Math.min(1, (progress - next * segmentSize) / segmentSize));
+      const driftY = (0.5 - localP) * 18;
+      const activeEl = textLayerRefs.current[next];
+      if (activeEl) {
+        activeEl.style.setProperty("--mob-drift-y", `${driftY.toFixed(1)}px`);
+      }
+
       if (next !== stepIdxRef.current) {
         stepIdxRef.current = next;
         setStepIdx(next);
@@ -232,7 +244,7 @@ function MobileStickyHero() {
     };
   }, []);
 
-  // Play ONLY active & next video on mobile; pause others; pause all when scrolled past hero
+  // Play ONLY active & next video on mobile; pause others
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(min-width: 1024px)").matches) return;
@@ -277,25 +289,42 @@ function MobileStickyHero() {
     };
   }, []);
 
-  const jumpToStep = (targetIdx: number) => {
-    const runway = runwayRef.current;
-    if (!runway) return;
-    const top = runway.getBoundingClientRect().top + window.scrollY;
-    const scrollable = Math.max(1, runway.offsetHeight - window.innerHeight);
-    const targetProgress =
-      HERO_STEPS.length > 1 ? (targetIdx + 0.15) / HERO_STEPS.length : 0;
-    window.scrollTo({
-      top: top + Math.min(1, targetProgress) * scrollable,
-      behavior: "smooth",
-    });
-  };
-
-  const active = HERO_STEPS[stepIdx] || HERO_STEPS[0];
+  // Choreographed spatial layout per step so text dances with each video composition
+  const STEP_LAYOUTS = [
+    {
+      // 01 IDEA: upper-left, leaving the sketching hand below wide open
+      positionClass: "top-[18%] left-5 right-5 text-left items-start",
+      enterTransform: "translate3d(-18px, calc(22px + var(--mob-drift-y, 0px)), 0)",
+      exitTransform: "translate3d(-12px, -28px, 0)",
+      lineOffset: (lIdx: number) => (lIdx === 0 ? -12 : 12),
+    },
+    {
+      // 02 BLUEPRINT: dead-center editorial convergence
+      positionClass: "top-[42%] left-5 right-5 text-center items-center",
+      enterTransform: "translate3d(0px, calc(24px + var(--mob-drift-y, 0px)), 0) scale(0.96)",
+      exitTransform: "translate3d(0px, -26px, 0) scale(1.02)",
+      lineOffset: (lIdx: number) => (lIdx === 0 ? -24 : 24),
+    },
+    {
+      // 03 ENGINEERING: mid-right sweep, letting coding screen & hands shine left
+      positionClass: "top-[36%] left-5 right-5 text-right items-end",
+      enterTransform: "translate3d(22px, calc(18px + var(--mob-drift-y, 0px)), 0)",
+      exitTransform: "translate3d(14px, -28px, 0)",
+      lineOffset: (lIdx: number) => (lIdx === 0 ? 18 : -10),
+    },
+    {
+      // 04 PRODUCT: grounded lower-center finale with dual CTAs joining underneath
+      positionClass: "bottom-9 left-5 right-5 text-center items-center",
+      enterTransform: "translate3d(0px, calc(28px + var(--mob-drift-y, 0px)), 0)",
+      exitTransform: "translate3d(0px, -20px, 0)",
+      lineOffset: () => 0,
+    },
+  ];
 
   return (
-    <div ref={runwayRef} className="block lg:hidden relative h-[255svh] w-full">
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#121412] text-[#f1efe8] flex flex-col justify-between">
-        {/* Full-Bleed Stacked 4 Video Background */}
+    <div ref={runwayRef} className="block lg:hidden relative h-[260svh] w-full">
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#121412] text-[#f1efe8]">
+        {/* Full-Bleed Stacked 4 Video Background — Top Completely Free */}
         <div className="absolute inset-0 z-0">
           {HERO_STEPS.map((step, idx) => {
             const isActive = idx === stepIdx;
@@ -305,8 +334,8 @@ function MobileStickyHero() {
                 className="absolute inset-0 h-full w-full"
                 style={{
                   opacity: isActive ? 1 : 0,
-                  transform: isActive ? "scale(1)" : "scale(1.04)",
-                  transition: "opacity 560ms ease, transform 750ms ease",
+                  transform: isActive ? "scale(1)" : "scale(1.06)",
+                  transition: "opacity 620ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
                   zIndex: isActive ? 2 : 1,
                 }}
               >
@@ -338,150 +367,138 @@ function MobileStickyHero() {
             );
           })}
 
-          {/* Editorial Scrim for >= 10:1 Text Legibility */}
+          {/* Balanced Cinematic Vignette Scrim (keeps text >= 8:1 readable at every position) */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-10"
             style={{
               background:
-                "linear-gradient(to top, rgba(14,16,14,0.94) 0%, rgba(14,16,14,0.52) 48%, rgba(14,16,14,0.72) 100%)",
+                stepIdx === 0
+                  ? "linear-gradient(to bottom, rgba(14,16,14,0.84) 0%, rgba(14,16,14,0.48) 48%, rgba(14,16,14,0.38) 100%)"
+                  : stepIdx === 1
+                  ? "radial-gradient(ellipse 85% 65% at 50% 50%, rgba(14,16,14,0.72) 0%, rgba(14,16,14,0.46) 100%)"
+                  : stepIdx === 2
+                  ? "linear-gradient(to left, rgba(14,16,14,0.86) 0%, rgba(14,16,14,0.52) 55%, rgba(14,16,14,0.34) 100%)"
+                  : "linear-gradient(to top, rgba(14,16,14,0.94) 0%, rgba(14,16,14,0.56) 52%, rgba(14,16,14,0.32) 100%)",
+              transition: "background 500ms ease",
             }}
           />
-
-          {/* Subtle Architectural Corner Registration Marks */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-3 top-18 z-10"
-          >
-            <span className="absolute top-0 left-0 h-3.5 w-3.5 border-t border-l border-[#9db5cf]/70" />
-            <span className="absolute top-0 right-0 h-3.5 w-3.5 border-t border-r border-[#9db5cf]/70" />
-            <span className="absolute bottom-0 left-0 h-3.5 w-3.5 border-b border-l border-[#9db5cf]/70" />
-            <span className="absolute bottom-0 right-0 h-3.5 w-3.5 border-b border-r border-[#9db5cf]/70" />
-          </div>
         </div>
 
-        {/* Top Bar: Studio Label & Tappable 01 / 04 Progress Segments */}
-        <div className="relative z-20 px-5 pt-22">
-          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-[#d6d5ce]">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#9db5cf]" />
-              <span>Studio · Software Engineering</span>
-            </span>
-            <span className="font-semibold text-[#9db5cf]" aria-live="polite">
-              {active.num} / 04
-            </span>
-          </div>
+        {/* Choreographed Dynamic Text Layers Synced with Video */}
+        <div className="relative z-20 h-full w-full">
+          {HERO_STEPS.map((step, idx) => {
+            const isCurrent = idx === stepIdx;
+            const layout = STEP_LAYOUTS[idx] || STEP_LAYOUTS[0];
+            const Tag = idx === 0 ? "h1" : "h2";
 
-          <div className="mt-3 grid grid-cols-4 gap-1.5" role="tablist" aria-label="Hero story steps">
-            {HERO_STEPS.map((s, idx) => (
-              <button
-                key={s.num}
-                type="button"
-                role="tab"
-                aria-selected={idx === stepIdx}
-                aria-label={`${s.num} ${s.tag}`}
-                onClick={() => jumpToStep(idx)}
-                className="py-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#9db5cf]"
+            return (
+              <div
+                key={step.num}
+                ref={(el) => {
+                  textLayerRefs.current[idx] = el;
+                }}
+                aria-hidden={!isCurrent}
+                className={`absolute flex flex-col ${layout.positionClass}`}
+                style={{
+                  opacity: isCurrent ? 1 : 0,
+                  transform: isCurrent
+                    ? "translate3d(0px, var(--mob-drift-y, 0px), 0) scale(1)"
+                    : idx < stepIdx
+                    ? layout.exitTransform
+                    : layout.enterTransform,
+                  transition:
+                    "opacity 460ms cubic-bezier(0.22, 1, 0.36, 1), transform 580ms cubic-bezier(0.22, 1, 0.36, 1)",
+                  pointerEvents: isCurrent ? "auto" : "none",
+                }}
               >
-                <span
-                  className="block h-[2.5px] w-full transition-colors duration-300"
-                  style={{
-                    backgroundColor:
-                      idx <= stepIdx ? "#9db5cf" : "rgba(241,239,232,0.24)",
-                  }}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
+                {/* Minimal kinetic step tag */}
+                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#9db5cf] mb-3">
+                  {step.tabLabel}
+                </p>
 
-        {/* Bottom Editorial Story Overlay */}
-        <div className="relative z-20 px-5 pb-8">
-          <div className="relative min-h-[215px] flex items-end">
-            {HERO_STEPS.map((step, idx) => {
-              const isCurrent = idx === stepIdx;
-              const Tag = idx === 0 ? "h1" : "h2";
-              return (
-                <div
-                  key={step.num}
-                  aria-hidden={!isCurrent}
-                  className="absolute inset-x-0 bottom-0"
+                {/* Masked Staggered Headline Lines */}
+                <Tag
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(2.3rem, 1.35rem + 5vw, 3.6rem)",
+                    fontWeight: 600,
+                    lineHeight: 1.03,
+                    letterSpacing: "-0.025em",
+                    color: "#f1efe8",
+                  }}
+                >
+                  {step.headlineLines.map((line, lIdx) => {
+                    const xOff = layout.lineOffset(lIdx);
+                    return (
+                      <span key={lIdx} className="block overflow-hidden pb-0.5">
+                        <span
+                          className="block"
+                          style={{
+                            transform: isCurrent
+                              ? "translate3d(0, 0, 0)"
+                              : `translate3d(${xOff}px, 105%, 0)`,
+                            transition: `transform 560ms cubic-bezier(0.22, 1, 0.36, 1) ${lIdx * 85}ms`,
+                          }}
+                        >
+                          {line.text}
+                          {line.highlight && (
+                            <span style={{ color: "#9db5cf" }}>{line.highlight}</span>
+                          )}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </Tag>
+
+                <p
+                  className="mt-3.5 text-[#d6d5ce] text-sm sm:text-base leading-relaxed max-w-[34ch]"
                   style={{
                     opacity: isCurrent ? 1 : 0,
-                    transform: isCurrent
-                      ? "translateY(0)"
-                      : idx < stepIdx
-                      ? "translateY(-14px)"
-                      : "translateY(14px)",
-                    transition: "opacity 380ms ease, transform 420ms ease",
-                    pointerEvents: isCurrent ? "auto" : "none",
+                    transform: isCurrent ? "translateY(0)" : "translateY(10px)",
+                    transition: "opacity 420ms ease 150ms, transform 460ms ease 150ms",
                   }}
                 >
-                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#9db5cf] mb-2.5">
-                    {step.tabLabel}
-                  </p>
-                  <Tag
+                  {step.support}
+                </p>
+
+                {/* Step 4 Finale CTAs */}
+                {idx === HERO_STEPS.length - 1 && (
+                  <div
+                    className="mt-6 w-full max-w-sm flex flex-col sm:flex-row gap-2.5"
                     style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(2.2rem, 1.35rem + 4.8vw, 3.5rem)",
-                      fontWeight: 600,
-                      lineHeight: 1.03,
-                      letterSpacing: "-0.025em",
-                      color: "#f1efe8",
+                      opacity: isCurrent ? 1 : 0,
+                      transform: isCurrent ? "translateY(0)" : "translateY(14px)",
+                      transition: "opacity 440ms ease 220ms, transform 500ms ease 220ms",
                     }}
                   >
-                    {step.headlineLines.map((line, lIdx) => (
-                      <span key={lIdx} className="block">
-                        {line.text}
-                        {line.highlight && (
-                          <span style={{ color: "#9db5cf" }}>{line.highlight}</span>
-                        )}
-                      </span>
-                    ))}
-                  </Tag>
-
-                  <p className="mt-3 text-[#d6d5ce] text-sm sm:text-base leading-relaxed max-w-[36ch]">
-                    {step.support}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Bottom Slot: Scroll Cue on Steps 1–3, Dual CTAs on Step 4 */}
-          <div className="mt-6 min-h-[52px] flex items-center">
-            {stepIdx < HERO_STEPS.length - 1 ? (
-              <div className="w-full flex items-center justify-between border-t border-white/15 pt-3 font-mono text-[11px] uppercase tracking-widest text-[#d6d5ce]">
-                <span>Scroll to continue</span>
-                <span aria-hidden="true">↓</span>
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center justify-center font-mono text-xs font-semibold uppercase tracking-wider px-5 py-3 w-full"
+                      style={{
+                        backgroundColor: "#f1efe8",
+                        color: "#121412",
+                        minHeight: 48,
+                      }}
+                    >
+                      Start a project
+                    </Link>
+                    <Link
+                      href="/work"
+                      className="inline-flex items-center justify-center font-mono text-xs uppercase tracking-wider px-5 py-3 border border-white/35 w-full"
+                      style={{
+                        color: "#f1efe8",
+                        backgroundColor: "rgba(18,20,18,0.55)",
+                        minHeight: 48,
+                      }}
+                    >
+                      See the work
+                    </Link>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="w-full flex flex-col sm:flex-row gap-2.5">
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center justify-center font-mono text-xs font-semibold uppercase tracking-wider px-5 py-3 w-full sm:w-auto"
-                  style={{
-                    backgroundColor: "#f1efe8",
-                    color: "#121412",
-                    minHeight: 48,
-                  }}
-                >
-                  Start a project
-                </Link>
-                <Link
-                  href="/work"
-                  className="inline-flex items-center justify-center font-mono text-xs uppercase tracking-wider px-5 py-3 border border-white/35 w-full sm:w-auto"
-                  style={{
-                    color: "#f1efe8",
-                    backgroundColor: "rgba(18,20,18,0.55)",
-                    minHeight: 48,
-                  }}
-                >
-                  See the work
-                </Link>
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>
