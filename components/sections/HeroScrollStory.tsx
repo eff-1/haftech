@@ -186,6 +186,308 @@ function MobileStoryBlock({
   );
 }
 
+function MobileStickyHero() {
+  const runwayRef = useRef<HTMLDivElement | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(0);
+  const [failed, setFailed] = useState<Record<number, boolean>>({});
+
+  // Native scroll-linked step tracker (pure CSS sticky — zero JS scroll-jacking)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+
+    let rafId = 0;
+
+    const update = () => {
+      const runway = runwayRef.current;
+      if (!runway) return;
+      const rect = runway.getBoundingClientRect();
+      const scrollable = Math.max(1, rect.height - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
+      const next = Math.min(
+        HERO_STEPS.length - 1,
+        Math.floor(progress * (HERO_STEPS.length - 0.01))
+      );
+      if (next !== stepIdxRef.current) {
+        stepIdxRef.current = next;
+        setStepIdx(next);
+      }
+    };
+
+    const onScroll = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  // Play ONLY active & next video on mobile; pause others; pause all when scrolled past hero
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+
+    HERO_STEPS.forEach((step, idx) => {
+      const vid = videoRefs.current[idx];
+      if (!vid) return;
+      const shouldPlay = idx === stepIdx || idx === stepIdx + 1;
+      if (shouldPlay) {
+        if (!vid.getAttribute("src")) {
+          vid.setAttribute("src", step.videoSrc);
+          vid.load();
+        }
+        vid.play().catch(() => {});
+      } else {
+        vid.pause();
+      }
+    });
+  }, [stepIdx]);
+
+  // Pause all mobile videos when hero runway leaves viewport
+  useEffect(() => {
+    const runway = runwayRef.current;
+    if (!runway || typeof IntersectionObserver === "undefined") return;
+
+    const vids = videoRefs.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0].isIntersecting) {
+          vids.forEach((v) => v?.pause());
+        } else {
+          const cur = stepIdxRef.current;
+          vids[cur]?.play().catch(() => {});
+        }
+      },
+      { threshold: 0.02 }
+    );
+    observer.observe(runway);
+    return () => {
+      observer.disconnect();
+      vids.forEach((v) => v?.pause());
+    };
+  }, []);
+
+  const jumpToStep = (targetIdx: number) => {
+    const runway = runwayRef.current;
+    if (!runway) return;
+    const top = runway.getBoundingClientRect().top + window.scrollY;
+    const scrollable = Math.max(1, runway.offsetHeight - window.innerHeight);
+    const targetProgress =
+      HERO_STEPS.length > 1 ? (targetIdx + 0.15) / HERO_STEPS.length : 0;
+    window.scrollTo({
+      top: top + Math.min(1, targetProgress) * scrollable,
+      behavior: "smooth",
+    });
+  };
+
+  const active = HERO_STEPS[stepIdx] || HERO_STEPS[0];
+
+  return (
+    <div ref={runwayRef} className="block lg:hidden relative h-[255svh] w-full">
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#121412] text-[#f1efe8] flex flex-col justify-between">
+        {/* Full-Bleed Stacked 4 Video Background */}
+        <div className="absolute inset-0 z-0">
+          {HERO_STEPS.map((step, idx) => {
+            const isActive = idx === stepIdx;
+            return (
+              <div
+                key={step.num}
+                className="absolute inset-0 h-full w-full"
+                style={{
+                  opacity: isActive ? 1 : 0,
+                  transform: isActive ? "scale(1)" : "scale(1.04)",
+                  transition: "opacity 560ms ease, transform 750ms ease",
+                  zIndex: isActive ? 2 : 1,
+                }}
+              >
+                {failed[idx] ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={step.posterSrc}
+                    alt={step.posterAlt}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[idx] = el;
+                    }}
+                    src={idx === 0 ? step.videoSrc : undefined}
+                    poster={step.posterSrc}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay={idx === 0}
+                    preload={idx === 0 ? "metadata" : "none"}
+                    onError={() => setFailed((prev) => ({ ...prev, [idx]: true }))}
+                    className="h-full w-full object-cover"
+                    aria-label={step.posterAlt}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Editorial Scrim for >= 10:1 Text Legibility */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(14,16,14,0.94) 0%, rgba(14,16,14,0.52) 48%, rgba(14,16,14,0.72) 100%)",
+            }}
+          />
+
+          {/* Subtle Architectural Corner Registration Marks */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-3 top-18 z-10"
+          >
+            <span className="absolute top-0 left-0 h-3.5 w-3.5 border-t border-l border-[#9db5cf]/70" />
+            <span className="absolute top-0 right-0 h-3.5 w-3.5 border-t border-r border-[#9db5cf]/70" />
+            <span className="absolute bottom-0 left-0 h-3.5 w-3.5 border-b border-l border-[#9db5cf]/70" />
+            <span className="absolute bottom-0 right-0 h-3.5 w-3.5 border-b border-r border-[#9db5cf]/70" />
+          </div>
+        </div>
+
+        {/* Top Bar: Studio Label & Tappable 01 / 04 Progress Segments */}
+        <div className="relative z-20 px-5 pt-22">
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-widest text-[#d6d5ce]">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#9db5cf]" />
+              <span>Studio · Software Engineering</span>
+            </span>
+            <span className="font-semibold text-[#9db5cf]" aria-live="polite">
+              {active.num} / 04
+            </span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-4 gap-1.5" role="tablist" aria-label="Hero story steps">
+            {HERO_STEPS.map((s, idx) => (
+              <button
+                key={s.num}
+                type="button"
+                role="tab"
+                aria-selected={idx === stepIdx}
+                aria-label={`${s.num} ${s.tag}`}
+                onClick={() => jumpToStep(idx)}
+                className="py-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#9db5cf]"
+              >
+                <span
+                  className="block h-[2.5px] w-full transition-colors duration-300"
+                  style={{
+                    backgroundColor:
+                      idx <= stepIdx ? "#9db5cf" : "rgba(241,239,232,0.24)",
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Editorial Story Overlay */}
+        <div className="relative z-20 px-5 pb-8">
+          <div className="relative min-h-[215px] flex items-end">
+            {HERO_STEPS.map((step, idx) => {
+              const isCurrent = idx === stepIdx;
+              const Tag = idx === 0 ? "h1" : "h2";
+              return (
+                <div
+                  key={step.num}
+                  aria-hidden={!isCurrent}
+                  className="absolute inset-x-0 bottom-0"
+                  style={{
+                    opacity: isCurrent ? 1 : 0,
+                    transform: isCurrent
+                      ? "translateY(0)"
+                      : idx < stepIdx
+                      ? "translateY(-14px)"
+                      : "translateY(14px)",
+                    transition: "opacity 380ms ease, transform 420ms ease",
+                    pointerEvents: isCurrent ? "auto" : "none",
+                  }}
+                >
+                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#9db5cf] mb-2.5">
+                    {step.tabLabel}
+                  </p>
+                  <Tag
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(2.2rem, 1.35rem + 4.8vw, 3.5rem)",
+                      fontWeight: 600,
+                      lineHeight: 1.03,
+                      letterSpacing: "-0.025em",
+                      color: "#f1efe8",
+                    }}
+                  >
+                    {step.headlineLines.map((line, lIdx) => (
+                      <span key={lIdx} className="block">
+                        {line.text}
+                        {line.highlight && (
+                          <span style={{ color: "#9db5cf" }}>{line.highlight}</span>
+                        )}
+                      </span>
+                    ))}
+                  </Tag>
+
+                  <p className="mt-3 text-[#d6d5ce] text-sm sm:text-base leading-relaxed max-w-[36ch]">
+                    {step.support}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Bottom Slot: Scroll Cue on Steps 1–3, Dual CTAs on Step 4 */}
+          <div className="mt-6 min-h-[52px] flex items-center">
+            {stepIdx < HERO_STEPS.length - 1 ? (
+              <div className="w-full flex items-center justify-between border-t border-white/15 pt-3 font-mono text-[11px] uppercase tracking-widest text-[#d6d5ce]">
+                <span>Scroll to continue</span>
+                <span aria-hidden="true">↓</span>
+              </div>
+            ) : (
+              <div className="w-full flex flex-col sm:flex-row gap-2.5">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center font-mono text-xs font-semibold uppercase tracking-wider px-5 py-3 w-full sm:w-auto"
+                  style={{
+                    backgroundColor: "#f1efe8",
+                    color: "#121412",
+                    minHeight: 48,
+                  }}
+                >
+                  Start a project
+                </Link>
+                <Link
+                  href="/work"
+                  className="inline-flex items-center justify-center font-mono text-xs uppercase tracking-wider px-5 py-3 border border-white/35 w-full sm:w-auto"
+                  style={{
+                    color: "#f1efe8",
+                    backgroundColor: "rgba(18,20,18,0.55)",
+                    minHeight: 48,
+                  }}
+                >
+                  See the work
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HeroScrollStory() {
   const prefersReducedMotion = useReducedMotion();
   const [activeStep, setActiveStep] = useState(0);
@@ -646,42 +948,8 @@ export function HeroScrollStory() {
         </div>
       </div>
 
-      {/* ==================== MOBILE (< 1024px): CLEAN STACKED SCROLL BLOCKS ==================== */}
-      <div className="block lg:hidden wrap relative z-10 pt-8 pb-12">
-        <div className="flex items-center gap-3 font-mono text-xs text-[var(--text-2)] tracking-widest uppercase mb-4">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#38536F]" />
-          <span>STUDIO · SOFTWARE ENGINEERING</span>
-        </div>
-
-        <div>
-          {HERO_STEPS.map((step, idx) => (
-            <MobileStoryBlock
-              key={step.num}
-              step={step}
-              index={idx}
-              reducedMotion={false}
-            />
-          ))}
-        </div>
-
-        {/* Thumb-reachable CTAs at the end of Step 4 */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/contact"
-            className="btn justify-center text-xs font-mono tracking-wider uppercase w-full sm:w-auto"
-            style={{ minHeight: 48, paddingInline: "var(--s-5)" }}
-          >
-            Start a project
-          </Link>
-          <Link
-            href="/work"
-            className="btn btn-secondary justify-center text-xs font-mono tracking-wider uppercase w-full sm:w-auto"
-            style={{ minHeight: 48, paddingInline: "var(--s-5)" }}
-          >
-            See the work
-          </Link>
-        </div>
-      </div>
+      {/* ==================== MOBILE (< 1024px): UNIFIED STICKY FULL-BLEED STORY ==================== */}
+      <MobileStickyHero />
     </>
   );
 }
