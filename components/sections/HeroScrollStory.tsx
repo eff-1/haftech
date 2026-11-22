@@ -516,7 +516,10 @@ export function HeroScrollStory() {
   const videoLayerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const videoElRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const ctaRef = useRef<HTMLDivElement | null>(null);
-  const borderRectRef = useRef<SVGRectElement | null>(null);
+  const borderArchRef = useRef<SVGPathElement | null>(null);
+  const monolithScrollRef = useRef<HTMLDivElement | null>(null);
+  const monolithTiltRef = useRef<HTMLDivElement | null>(null);
+  const rightStageRef = useRef<HTMLDivElement | null>(null);
   const activeStepRef = useRef(0);
 
   // Desktop: play ONLY active and next video; pause all others; lazy-load videos 2–4
@@ -563,19 +566,57 @@ export function HeroScrollStory() {
         mm = matchMedia;
 
         matchMedia.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-          // Draw the architectural frame border stroke once on load
-          if (borderRectRef.current) {
-            const len = borderRectRef.current.getTotalLength();
-            gsap.set(borderRectRef.current, {
+          // Draw the floating 3D wire-arch halo stroke once on load
+          if (borderArchRef.current) {
+            const len = borderArchRef.current.getTotalLength();
+            gsap.set(borderArchRef.current, {
               strokeDasharray: len,
               strokeDashoffset: len,
             });
-            gsap.to(borderRectRef.current, {
+            gsap.to(borderArchRef.current, {
               strokeDashoffset: 0,
-              duration: 1.15,
+              duration: 1.25,
               ease: "power2.out",
               delay: 0.12,
             });
+          }
+
+          // Initial sculptural 3D angle for Step 01 (angled gently toward the headline)
+          const MONOLITH_POSES = [
+            { rotateY: -11, rotateX: 4, rotateZ: -0.6, scale: 0.99 },
+            { rotateY: 7, rotateX: -3, rotateZ: 0.5, scale: 1.0 },
+            { rotateY: -8, rotateX: 3.5, rotateZ: -0.4, scale: 1.0 },
+            { rotateY: 0, rotateX: 0, rotateZ: 0, scale: 1.02 },
+          ];
+          if (monolithScrollRef.current) {
+            gsap.set(monolithScrollRef.current, MONOLITH_POSES[0]);
+          }
+
+          // Interactive desktop pointer 3D tilt on nested pivot (composes cleanly with scroll poses)
+          let removePointerListeners: (() => void) | null = null;
+          if (rightStageRef.current && monolithTiltRef.current) {
+            const stageEl = rightStageRef.current;
+            const tiltEl = monolithTiltRef.current;
+            const qRotY = gsap.quickTo(tiltEl, "rotateY", { duration: 0.65, ease: "power3.out" });
+            const qRotX = gsap.quickTo(tiltEl, "rotateX", { duration: 0.65, ease: "power3.out" });
+
+            const onMove = (e: MouseEvent) => {
+              const rect = stageEl.getBoundingClientRect();
+              const nx = (e.clientX - rect.left) / rect.width - 0.5;
+              const ny = (e.clientY - rect.top) / rect.height - 0.5;
+              qRotY(nx * 11);
+              qRotX(-ny * 9);
+            };
+            const onLeave = () => {
+              qRotY(0);
+              qRotX(0);
+            };
+            stageEl.addEventListener("mousemove", onMove, { passive: true });
+            stageEl.addEventListener("mouseleave", onLeave);
+            removePointerListeners = () => {
+              stageEl.removeEventListener("mousemove", onMove);
+              stageEl.removeEventListener("mouseleave", onLeave);
+            };
           }
 
           // Initialize slides 1..3 hidden below masks; slide 0 painted & visible
@@ -680,7 +721,18 @@ export function HeroScrollStory() {
             }
             tl.set(outSlide, { autoAlpha: 0, zIndex: 1 }, `${label}+=0.45`);
 
-            // Right video crossfades + clip-path & scale reveals (0.6s equivalent)
+            // Right 3D monolith shifts sculptural camera angle + video crossfades with clip-path & scale
+            if (monolithScrollRef.current) {
+              tl.to(
+                monolithScrollRef.current,
+                {
+                  ...MONOLITH_POSES[i + 1],
+                  duration: 0.72,
+                  ease: "power2.inOut",
+                },
+                `${label}+=0.04`
+              );
+            }
             tl.to(
               inVideo,
               {
@@ -724,6 +776,10 @@ export function HeroScrollStory() {
             );
           }
           tl.to({}, { duration: 0.35 });
+
+          return () => {
+            if (removePointerListeners) removePointerListeners();
+          };
         });
       }
     );
@@ -874,90 +930,140 @@ export function HeroScrollStory() {
               </div>
             </div>
 
-            {/* RIGHT COLUMN (~55% -> 7 cols): Grid-Aligned Squared Architectural Media Frame */}
-            <div className="col-span-7">
-              <div className="relative border border-line bg-[var(--surface)]">
-                {/* Self-Drawing SVG Frame Border on First Load */}
-                <svg
-                  className="pointer-events-none absolute inset-0 z-30 h-full w-full"
-                  viewBox="0 0 1000 660"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
+            {/* RIGHT COLUMN (~55% -> 7 cols): Sculptural 3D Arched Architectural Portal */}
+            <div
+              ref={rightStageRef}
+              className="col-span-7 flex items-center justify-center py-4 px-2 xl:px-6"
+              style={{ perspective: "1450px" }}
+            >
+              <div
+                ref={monolithScrollRef}
+                className="relative w-full max-w-[680px] will-change-transform"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <div
+                  ref={monolithTiltRef}
+                  className="relative w-full will-change-transform"
+                  style={{ transformStyle: "preserve-3d" }}
                 >
-                  <rect
-                    ref={borderRectRef}
-                    x="1"
-                    y="1"
-                    width="998"
-                    height="658"
-                    fill="none"
-                    stroke="#38536F"
-                    strokeOpacity="0.45"
-                    strokeWidth="1.5"
+                  {/* DEPTH LAYER -1 (-52px): Architectural Backplate Silhouette & Soft Ground Shadow */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-t-[200px] rounded-b-[22px] border border-[var(--line)] bg-[#e6e3d9]/75"
+                    style={{
+                      transform: "translate3d(18px, 22px, -52px)",
+                      boxShadow: "0 44px 90px -24px rgba(24, 28, 32, 0.28)",
+                    }}
                   />
-                </svg>
 
-                <CornerNotches />
+                  {/* DEPTH LAYER 0 (0px): Main Sculpted Arched Glass Video Monolith */}
+                  <div
+                    className="relative aspect-[4/3.1] max-h-[68vh] w-full overflow-hidden rounded-t-[196px] rounded-b-[20px] border border-[#20221f]/20 bg-[#151715]"
+                    style={{
+                      boxShadow:
+                        "0 30px 70px -18px rgba(20, 22, 19, 0.38), inset 0 1px 0 rgba(255,255,255,0.28)",
+                    }}
+                  >
+                    {/* Stacked 4-Layer HD Video Window */}
+                    {HERO_STEPS.map((step, idx) => {
+                      const failed = !!failedVideos[idx];
+                      return (
+                        <div
+                          key={step.num}
+                          ref={(el) => {
+                            videoLayerRefs.current[idx] = el;
+                          }}
+                          className="absolute inset-0 h-full w-full will-change-transform"
+                          style={{
+                            opacity: idx === 0 ? 1 : 0,
+                            zIndex: idx + 1,
+                          }}
+                        >
+                          {failed ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={step.posterSrc}
+                              alt={step.posterAlt}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <video
+                              ref={(el) => {
+                                videoElRefs.current[idx] = el;
+                              }}
+                              src={idx === 0 ? step.videoSrc : undefined}
+                              poster={step.posterSrc}
+                              muted
+                              loop
+                              playsInline
+                              autoPlay={idx === 0}
+                              preload={idx === 0 ? "metadata" : "none"}
+                              onError={() =>
+                                setFailedVideos((prev) => ({ ...prev, [idx]: true }))
+                              }
+                              className="h-full w-full object-cover"
+                              aria-label={step.posterAlt}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
 
-                {/* Top Technical Drawing Caption Tab */}
-                <div className="relative z-20 flex items-center justify-between border-b border-line bg-[var(--bg)]/90 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-[var(--text-2)]">
-                  <span style={{ color: "#38536F", fontWeight: 600 }}>
-                    {currentStep.tabLabel}
-                  </span>
-                  <span>HAFTECH // STUDIO REEL</span>
-                </div>
+                    {/* Subtle Architectural Specular Arch Sheen */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 z-20 rounded-t-[196px] rounded-b-[20px]"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.0) 36%, rgba(16,18,16,0.22) 100%)",
+                      }}
+                    />
+                  </div>
 
-                {/* Stacked 4-Layer Video Window */}
-                <div className="relative aspect-[16/10] max-h-[66vh] w-full overflow-hidden bg-[#151715]">
-                  {HERO_STEPS.map((step, idx) => {
-                    const failed = !!failedVideos[idx];
-                    return (
-                      <div
-                        key={step.num}
-                        ref={(el) => {
-                          videoLayerRefs.current[idx] = el;
-                        }}
-                        className="absolute inset-0 h-full w-full will-change-transform"
-                        style={{
-                          opacity: idx === 0 ? 1 : 0,
-                          zIndex: idx + 1,
-                        }}
-                      >
-                        {failed ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={step.posterSrc}
-                            alt={step.posterAlt}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <video
-                            ref={(el) => {
-                              videoElRefs.current[idx] = el;
-                            }}
-                            src={idx === 0 ? step.videoSrc : undefined}
-                            poster={step.posterSrc}
-                            muted
-                            loop
-                            playsInline
-                            autoPlay={idx === 0}
-                            preload={idx === 0 ? "metadata" : "none"}
-                            onError={() =>
-                              setFailedVideos((prev) => ({ ...prev, [idx]: true }))
-                            }
-                            className="h-full w-full object-cover"
-                            aria-label={step.posterAlt}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                  {/* DEPTH LAYER +1 (+30px): Floating Precision Wire-Arch Contour (Self-Drawing SVG) */}
+                  <svg
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-3 z-30 h-[calc(100%+24px)] w-[calc(100%+24px)] overflow-visible"
+                    viewBox="0 0 680 530"
+                    preserveAspectRatio="none"
+                    style={{ transform: "translateZ(30px)" }}
+                  >
+                    <path
+                      ref={borderArchRef}
+                      d="M 24 522 L 656 522 Q 672 522 672 506 L 672 210 C 672 95 575 8 340 8 C 105 8 8 95 8 210 L 8 506 Q 8 522 24 522 Z"
+                      fill="none"
+                      stroke="#38536F"
+                      strokeOpacity="0.52"
+                      strokeWidth="1.25"
+                    />
+                  </svg>
 
-                {/* Bottom Technical Caption Strip */}
-                <div className="relative z-20 flex items-center justify-between border-t border-line bg-[var(--bg)]/90 px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-[var(--text-2)]">
-                  <span>STEP {currentStep.num} OF 04</span>
-                  <span>{currentStep.tag}</span>
+                  {/* DEPTH LAYER +2 (+56px): Floating 3D Glassmorphic Studio Badges */}
+                  <div
+                    className="pointer-events-none absolute -top-2 right-5 z-40 flex items-center gap-2 rounded-full border border-[#d9d7cf] bg-[#faf9f5]/95 px-3.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest backdrop-blur-sm"
+                    style={{
+                      color: "#38536F",
+                      transform: "translateZ(56px)",
+                      boxShadow: "0 14px 30px -8px rgba(20,22,19,0.22)",
+                    }}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#38536F]" />
+                    <span>{currentStep.tabLabel}</span>
+                  </div>
+
+                  <div
+                    className="pointer-events-none absolute -bottom-3 left-6 z-40 flex items-center gap-2.5 rounded-full border border-white/15 bg-[#181a18]/92 px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest text-[#f1efe8] backdrop-blur-sm"
+                    style={{
+                      transform: "translateZ(56px)",
+                      boxShadow: "0 18px 34px -10px rgba(0,0,0,0.45)",
+                    }}
+                  >
+                    <span className="text-[#9db5cf] font-semibold">
+                      {currentStep.num}
+                    </span>
+                    <span className="h-3 w-px bg-white/20" />
+                    <span>HAFTECH // STUDIO</span>
+                  </div>
                 </div>
               </div>
             </div>
