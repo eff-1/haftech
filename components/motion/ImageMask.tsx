@@ -21,21 +21,10 @@ export function ImageMask({
   const [revealed, setRevealed] = useState(true);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setRevealed(true);
-      return;
-    }
+    if (prefersReducedMotion) return;
 
     const el = containerRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.9) {
-      setRevealed(true);
-      return;
-    }
-
-    setRevealed(false);
 
     const observer = new IntersectionObserver(
       (entries) => {

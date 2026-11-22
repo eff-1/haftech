@@ -26,11 +26,14 @@ export function CurvedCylinderStage({
   const [webglFailed, setWebglFailed] = useState(false);
 
   const onSelectRef = useRef(onSelectIndex);
-  onSelectRef.current = onSelectIndex;
   const onDragDeltaRef = useRef(onDragDelta);
-  onDragDeltaRef.current = onDragDelta;
   const onDragEndRef = useRef(onDragEnd);
-  onDragEndRef.current = onDragEnd;
+
+  useEffect(() => {
+    onSelectRef.current = onSelectIndex;
+    onDragDeltaRef.current = onDragDelta;
+    onDragEndRef.current = onDragEnd;
+  }, [onSelectIndex, onDragDelta, onDragEnd]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

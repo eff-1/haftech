@@ -20,6 +20,25 @@ export function SiteNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const closeMenu = () => {
+    const overlay = overlayRef.current;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!overlay || prefersReduced) {
+      setOpen(false);
+      return;
+    }
+
+    import("gsap").then(({ default: gsap }) => {
+      gsap.to(overlay, {
+        clipPath: "inset(0% 0% 100% 0%)",
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => setOpen(false),
+      });
+    });
+  };
+
   // M10 Mobile menu overlay animation (dynamic GSAP only when menu is toggled)
   useEffect(() => {
     if (!open) return;
@@ -71,25 +90,6 @@ export function SiteNav() {
       document.body.style.overflow = "";
     };
   }, [open]);
-
-  const closeMenu = () => {
-    const overlay = overlayRef.current;
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (!overlay || prefersReduced) {
-      setOpen(false);
-      return;
-    }
-
-    import("gsap").then(({ default: gsap }) => {
-      gsap.to(overlay, {
-        clipPath: "inset(0% 0% 100% 0%)",
-        duration: 0.3,
-        ease: "power2.in",
-        onComplete: () => setOpen(false),
-      });
-    });
-  };
 
   return (
     <header
